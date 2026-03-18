@@ -21,7 +21,7 @@ export async function handleLangCallback(ctx: MyContext): Promise<void> {
 
   const welcome = t(lang, "welcome");
 
-  await ctx.editMessageText(welcome);
+  await ctx.deleteMessage();
 
   if (!ctx.session.credentialId) {
     await ctx.reply(welcome, { reply_markup: buildGuestKeyboard(lang) });
