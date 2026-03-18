@@ -160,7 +160,6 @@ export const ru = {
   status_sale: "🟢 Продано",
   status_cancelled: "🔴 Отменено",
 
-  btn_cancel: "❌ Отмена",
   btn_back: "⬅️ Назад",
 
   // Status buttons

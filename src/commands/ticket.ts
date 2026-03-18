@@ -61,7 +61,7 @@ export async function addClientConversation(
     .text(t(lang, "btn_sale"), "newstatus:sale")
     .text(t(lang, "btn_cancelled"), "newstatus:cancelled");
 
-  await ctx.reply(t(lang, "add_client_select_status"), { reply_markup: statusKb });
+  const statusMsg = await ctx.reply(t(lang, "add_client_select_status"), { reply_markup: statusKb });
 
   const statusCtx = await conversation.waitFor("callback_query:data");
   const status = statusCtx.callbackQuery.data.split(":")[1] as ClientStatus;
@@ -72,6 +72,8 @@ export async function addClientConversation(
     text: t(lang, "add_client_alert_success"),
     show_alert: true,
   });
+
+  await ctx.api.deleteMessage(ctx.chat!.id, statusMsg.message_id).catch(() => {});
 }
 
 // ── /list_clients ─────────────────────────────────────────────────────────────
@@ -173,7 +175,7 @@ export async function listClientsConversation(
       }
       kb.row();
     }
-    kb.text(t(lang, "btn_cancel"), "lcl:cancel");
+    kb.text(t(lang, "btn_back"), "lcl:cancel");
     return kb;
   }
 
@@ -253,7 +255,7 @@ function cscListKeyboard(
     }
     kb.row();
   }
-  kb.text(t(lang, "btn_cancel"), "csc:cancel");
+  kb.text(t(lang, "btn_back"), "csc:cancel");
   return kb;
 }
 

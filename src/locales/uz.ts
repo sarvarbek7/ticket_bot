@@ -160,7 +160,6 @@ export const uz = {
   status_sale: "🟢 Sotildi",
   status_cancelled: "🔴 Bekor qilindi",
 
-  btn_cancel: "❌ Bekor",
   btn_back: "⬅️ Orqaga",
 
   // Status buttons

@@ -160,7 +160,6 @@ export const en = {
   status_sale: "🟢 Sold",
   status_cancelled: "🔴 Cancelled",
 
-  btn_cancel: "❌ Cancel",
   btn_back: "⬅️ Back",
 
   // Status buttons
