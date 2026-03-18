@@ -113,6 +113,10 @@ export const en = {
   add_admin_login_exists: "Login '{login}' is already taken. Please choose another.",
   add_admin_success: "Admin '{login}' created successfully.",
 
+  toggle_active_prompt: "Change status? Current: {status}",
+  toggle_active_activate: "✅ Activate",
+  toggle_active_deactivate: "🚫 Deactivate",
+  toggle_active_skip: "⏭ Skip",
   update_admin_select: "Select an admin to update:",
   update_admin_no_admins: "No admins found.",
   update_admin_prompt_login: "Enter new login (current: {login}):",

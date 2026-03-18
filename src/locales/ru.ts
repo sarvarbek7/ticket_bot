@@ -113,6 +113,10 @@ export const ru = {
   add_admin_login_exists: "Логин '{login}' уже занят. Пожалуйста, выберите другой.",
   add_admin_success: "Администратор '{login}' успешно создан.",
 
+  toggle_active_prompt: "Изменить статус? Текущий: {status}",
+  toggle_active_activate: "✅ Активировать",
+  toggle_active_deactivate: "🚫 Деактивировать",
+  toggle_active_skip: "⏭ Пропустить",
   update_admin_select: "Выберите администратора для обновления:",
   update_admin_no_admins: "Администраторы не найдены.",
   update_admin_prompt_login: "Введите новый логин (текущий: {login}):",

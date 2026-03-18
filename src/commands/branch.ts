@@ -10,6 +10,7 @@ import {
   updateBranch,
   updateCredentialLoginPassword,
   updateCredentialLogin,
+  setCredentialActive,
   deactivateCredential,
   getBranchById,
 } from "../db";

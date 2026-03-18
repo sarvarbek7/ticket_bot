@@ -94,6 +94,14 @@ export function deactivateCredential(credentialId: number): void {
   db.prepare("UPDATE credentials SET is_active = 0 WHERE id = ?").run(credentialId);
 }
 
+export function setCredentialActive(id: number, active: boolean): void {
+  db.prepare("UPDATE credentials SET is_active = ? WHERE id = ?").run(active ? 1 : 0, id);
+}
+
+export function setManagerActive(id: number, active: boolean): void {
+  db.prepare("UPDATE managers SET is_active = ? WHERE id = ?").run(active ? 1 : 0, id);
+}
+
 export function verifyPassword(plain: string, hash: string): boolean {
   return bcrypt.compareSync(plain, hash);
 }

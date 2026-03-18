@@ -8,6 +8,7 @@ import {
   findCredentialByLogin,
   updateCredentialLoginPassword,
   updateCredentialLogin,
+  setCredentialActive,
   deactivateCredential,
 } from "../db";
 
@@ -87,6 +88,20 @@ export async function updateAdminConversation(
       updateCredentialLoginPassword(adminId, newLogin, newPassword);
     }
   });
+
+  // Toggle active status
+  const currentStatus = admin.is_active ? t(lang, "admin_active") : t(lang, "admin_inactive");
+  const toggleKb = new InlineKeyboard()
+    .text(t(lang, "toggle_active_activate"), "toggleadmin:activate")
+    .text(t(lang, "toggle_active_deactivate"), "toggleadmin:deactivate").row()
+    .text(t(lang, "toggle_active_skip"), "toggleadmin:skip");
+  await ctx.reply(t(lang, "toggle_active_prompt", { status: currentStatus }), { reply_markup: toggleKb });
+
+  const toggleCtx = await conversation.waitFor("callback_query:data");
+  await toggleCtx.answerCallbackQuery();
+  const toggleAction = toggleCtx.callbackQuery.data.split(":")[1];
+  if (toggleAction === "activate") await conversation.external(() => setCredentialActive(adminId, true));
+  else if (toggleAction === "deactivate") await conversation.external(() => setCredentialActive(adminId, false));
 
   await ctx.reply(t(lang, "update_admin_success", { login: newLogin }), {
     reply_markup: buildAdminSubKeyboard("admin", lang),

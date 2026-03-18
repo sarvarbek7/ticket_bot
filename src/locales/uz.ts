@@ -113,6 +113,10 @@ export const uz = {
   add_admin_login_exists: "'{login}' logini allaqachon band. Iltimos, boshqasini tanlang.",
   add_admin_success: "'{login}' admin muvaffaqiyatli yaratildi.",
 
+  toggle_active_prompt: "Holatni o'zgartirish? Joriy: {status}",
+  toggle_active_activate: "✅ Faollashtirish",
+  toggle_active_deactivate: "🚫 Faolsizlantirish",
+  toggle_active_skip: "⏭ O'tkazib yuborish",
   update_admin_select: "Yangilash uchun adminni tanlang:",
   update_admin_no_admins: "Adminlar topilmadi.",
   update_admin_prompt_login: "Yangi loginni kiriting (joriy: {login}):",
