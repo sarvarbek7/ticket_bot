@@ -7,7 +7,7 @@ export async function handleLogout(ctx: MyContext): Promise<void> {
   const lang = ctx.session.lang;
 
   if (!ctx.session.credentialId) {
-    await ctx.reply(t(lang, "not_logged_in_logout"));
+    await ctx.reply(t(lang, "not_logged_in"));
     return;
   }
 

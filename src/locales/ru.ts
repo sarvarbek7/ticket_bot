@@ -2,7 +2,7 @@ export const ru = {
   // General
   choose_language: "Choose language / Выберите язык / Tilni tanlang:",
   welcome: "Добро пожаловать в бот Aviasales!",
-  not_logged_in: "Вы не вошли в систему. Используйте /login для входа.",
+  not_logged_in: "Вы не вошли в систему.",
   unauthorized: "У вас нет прав для использования этой команды.",
   cancelled: "Операция отменена.",
   invalid_input: "Некорректный ввод. Попробуйте ещё раз.",
@@ -16,7 +16,6 @@ export const ru = {
   login_failed: "Неверный логин или пароль.",
   account_inactive: "Ваш аккаунт деактивирован. Обратитесь к администратору.",
   logout_success: "Вы успешно вышли из системы.",
-  not_logged_in_logout: "Вы не вошли в систему.",
 
   // Branches
   add_branch_prompt_name: "Введите название филиала:",

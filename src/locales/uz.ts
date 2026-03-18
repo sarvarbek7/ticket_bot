@@ -2,7 +2,7 @@ export const uz = {
   // General
   choose_language: "Choose language / Выберите язык / Tilni tanlang:",
   welcome: "Aviasales botiga xush kelibsiz!",
-  not_logged_in: "Siz tizimga kirmagansiz. Kirish uchun /login dan foydalaning.",
+  not_logged_in: "Siz tizimga kirmagansiz.",
   unauthorized: "Bu buyruqni ishlatish uchun ruxsatingiz yo'q.",
   cancelled: "Amal bekor qilindi.",
   invalid_input: "Noto'g'ri kiritish. Qaytadan urinib ko'ring.",
@@ -16,7 +16,6 @@ export const uz = {
   login_failed: "Noto'g'ri login yoki parol.",
   account_inactive: "Sizning hisobingiz faolsizlantirilgan. Admin bilan bog'laning.",
   logout_success: "Siz tizimdan muvaffaqiyatli chiqdingiz.",
-  not_logged_in_logout: "Siz tizimga kirmagansiz.",
 
   // Branches
   add_branch_prompt_name: "Filial nomini kiriting:",

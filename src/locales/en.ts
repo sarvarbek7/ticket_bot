@@ -2,7 +2,7 @@ export const en = {
   // General
   choose_language: "Choose language / Выберите язык / Tilni tanlang:",
   welcome: "Welcome to Aviasales Ticket Bot!",
-  not_logged_in: "You are not logged in. Use /login to log in.",
+  not_logged_in: "You are not logged in.",
   unauthorized: "You do not have permission to use this command.",
   cancelled: "Operation cancelled.",
   invalid_input: "Invalid input. Please try again.",
@@ -16,7 +16,6 @@ export const en = {
   login_failed: "Invalid login or password.",
   account_inactive: "Your account has been deactivated. Please contact the admin.",
   logout_success: "You have been logged out successfully.",
-  not_logged_in_logout: "You are not logged in.",
 
   // Branches
   add_branch_prompt_name: "Enter branch name:",
