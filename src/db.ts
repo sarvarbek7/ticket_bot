@@ -1,8 +1,13 @@
 import Database from "better-sqlite3";
 import bcrypt from "bcryptjs";
+import fs from "fs";
+import path from "path";
 import { DbCredential, DbBranch, DbManager, DbClient, CredentialType, ClientStatus } from "./types";
 
-const db = new Database("data.db");
+const dataDir = path.join(__dirname, "..", "data");
+if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+
+const db = new Database(path.join(dataDir, "data.db"));
 db.pragma("journal_mode = WAL");
 
 db.exec(`
