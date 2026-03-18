@@ -151,6 +151,11 @@ export const ru = {
   import_empty: "Клиенты не найдены.",
   import_sending: "Генерация Excel-файла…",
 
+  // Status labels (display)
+  status_in_progress: "🟡 В процессе",
+  status_sale: "🟢 Продано",
+  status_cancelled: "🔴 Отменено",
+
   // Status buttons
   btn_in_progress: "🟡 В процессе",
   btn_sale: "✅ Продан",

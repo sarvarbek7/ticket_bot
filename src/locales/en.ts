@@ -151,6 +151,11 @@ export const en = {
   import_empty: "No clients found.",
   import_sending: "Generating Excel file…",
 
+  // Status labels (display)
+  status_in_progress: "🟡 In Progress",
+  status_sale: "🟢 Sold",
+  status_cancelled: "🔴 Cancelled",
+
   // Status buttons
   btn_in_progress: "🟡 In Progress",
   btn_sale: "✅ Sale",

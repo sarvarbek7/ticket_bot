@@ -13,6 +13,11 @@ import {
   getInProgressClientsByBranch,
 } from "../db";
 
+function statusLabel(lang: Lang, status: string): string {
+  const key = `status_${status}` as Parameters<typeof t>[1];
+  return t(lang, key) || status;
+}
+
 function statusKeyboard(clientId: number, lang: Lang): InlineKeyboard {
   return new InlineKeyboard()
     .text(t(lang, "btn_sale"), `status:${clientId}:sale`)
@@ -69,12 +74,6 @@ export async function addClientConversation(
   await statusCtx.answerCallbackQuery();
   const status = statusCtx.callbackQuery.data.split(":")[1] as ClientStatus;
 
-  const statusIcons: Record<string, string> = {
-    in_progress: "🟡 in_progress",
-    sale: "🟢 sale",
-    cancelled: "🔴 cancelled",
-  };
-
   const id = createClient(name, phone, direction, branchId, managerId, status);
 
   await ctx.reply(
@@ -84,7 +83,7 @@ export async function addClientConversation(
       phone,
       direction,
       manager: manager?.name ?? "—",
-      status: statusIcons[status] ?? status,
+      status: statusLabel(lang, status),
     }),
     status === "in_progress" ? { reply_markup: statusKeyboard(id, lang) } : {}
   );
@@ -137,7 +136,7 @@ export async function listClientsConversation(
       name: c.name,
       phone: c.phone,
       direction: c.direction_name,
-      status: c.buying_status,
+      status: statusLabel(lang, c.buying_status),
       manager: c.manager_name ?? "—",
     })
   );
@@ -178,7 +177,7 @@ export async function getClientInfoConversation(
       name: client.name,
       phone: client.phone,
       direction: client.direction_name,
-      status: client.buying_status,
+      status: statusLabel(lang, client.buying_status),
       branch: client.branch_name ?? "—",
       manager: client.manager_name ?? "—",
     }),
@@ -237,7 +236,7 @@ export async function changeClientStatusConversation(
       .text(t(lang, "btn_cancelled"), `changestatus:${id}:cancelled`);
 
     await ctx.reply(
-      t(lang, "change_client_status_current", { id: client.id, status: client.buying_status }),
+      t(lang, "change_client_status_current", { id: client.id, status: statusLabel(lang, client.buying_status) }),
       { reply_markup: inlineKb }
     );
 
@@ -252,7 +251,7 @@ export async function changeClientStatusConversation(
     await conversation.external(() => updateClientStatus(id, newStatus as ClientStatus));
 
     await cbCtx.answerCallbackQuery({
-      text: t(lang, "change_client_status_success", { id, status: newStatus }),
+      text: t(lang, "change_client_status_success", { id, status: statusLabel(lang, newStatus) }),
       show_alert: true,
     });
 

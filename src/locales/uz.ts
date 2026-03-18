@@ -151,6 +151,11 @@ export const uz = {
   import_empty: "Mijozlar topilmadi.",
   import_sending: "Excel fayli yaratilmoqda…",
 
+  // Status labels (display)
+  status_in_progress: "🟡 Jarayonda",
+  status_sale: "🟢 Sotildi",
+  status_cancelled: "🔴 Bekor qilindi",
+
   // Status buttons
   btn_in_progress: "🟡 Jarayonda",
   btn_sale: "✅ Sotildi",
