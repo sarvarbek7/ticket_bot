@@ -1,4 +1,4 @@
-import { InlineKeyboard } from "grammy";
+import { InlineKeyboard, Keyboard } from "grammy";
 import { MyContext, MyConversation } from "../types";
 import { t } from "../locales";
 import {
@@ -20,12 +20,13 @@ export async function addBranchConversation(
   ctx: MyContext
 ): Promise<void> {
   const lang = ctx.session.lang;
+  const cancelKb = new Keyboard().text(t(lang, "btn_menu_cancel")).resized();
 
-  await ctx.reply(t(lang, "add_branch_prompt_name"));
+  await ctx.reply(t(lang, "add_branch_prompt_name"), { reply_markup: cancelKb });
   const nameCtx = await conversation.waitFor("message:text");
   const name = nameCtx.message.text.trim();
 
-  await ctx.reply(t(lang, "add_branch_prompt_location"));
+  await ctx.reply(t(lang, "add_branch_prompt_location"), { reply_markup: cancelKb });
   let latitude: number;
   let longitude: number;
 
@@ -36,10 +37,11 @@ export async function addBranchConversation(
       longitude = locCtx.message.location.longitude;
       break;
     }
-    await ctx.reply(t(lang, "add_branch_prompt_location"));
+    if (locCtx.message?.text) return; // cancel interceptor handled it
+    await ctx.reply(t(lang, "add_branch_prompt_location"), { reply_markup: cancelKb });
   }
 
-  await ctx.reply(t(lang, "add_branch_prompt_login"));
+  await ctx.reply(t(lang, "add_branch_prompt_login"), { reply_markup: cancelKb });
   const loginCtx = await conversation.waitFor("message:text");
   const login = loginCtx.message.text.trim();
 
@@ -48,7 +50,7 @@ export async function addBranchConversation(
     return;
   }
 
-  await ctx.reply(t(lang, "add_branch_prompt_password"));
+  await ctx.reply(t(lang, "add_branch_prompt_password"), { reply_markup: cancelKb });
   const passwordCtx = await conversation.waitFor("message:text");
   const password = passwordCtx.message.text.trim();
 
@@ -89,11 +91,13 @@ export async function updateBranchConversation(
     return;
   }
 
-  await ctx.reply(t(lang, "update_branch_prompt_name", { name: branch.name }));
+  const cancelKb = new Keyboard().text(t(lang, "btn_menu_cancel")).resized();
+
+  await ctx.reply(t(lang, "update_branch_prompt_name", { name: branch.name }), { reply_markup: cancelKb });
   const nameCtx = await conversation.waitFor("message:text");
   const newName = nameCtx.message.text.trim();
 
-  await ctx.reply(t(lang, "update_branch_prompt_location"));
+  await ctx.reply(t(lang, "update_branch_prompt_location"), { reply_markup: cancelKb });
   let latitude = branch.latitude;
   let longitude = branch.longitude;
 
@@ -102,13 +106,13 @@ export async function updateBranchConversation(
     latitude = locCtx.message.location.latitude;
     longitude = locCtx.message.location.longitude;
   }
-  // if text (skip or anything else), keep existing coordinates
+  if (locCtx.message?.text) return; // cancel interceptor handled it
 
-  await ctx.reply(t(lang, "update_branch_prompt_login", { login: branch.login ?? "" }));
+  await ctx.reply(t(lang, "update_branch_prompt_login", { login: branch.login ?? "" }), { reply_markup: cancelKb });
   const loginCtx = await conversation.waitFor("message:text");
   const newLogin = loginCtx.message.text.trim();
 
-  await ctx.reply(t(lang, "update_branch_prompt_password"));
+  await ctx.reply(t(lang, "update_branch_prompt_password"), { reply_markup: cancelKb });
   const passwordCtx = await conversation.waitFor("message:text");
   const newPassword = passwordCtx.message.text.trim();
 

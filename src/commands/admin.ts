@@ -1,4 +1,4 @@
-import { InlineKeyboard } from "grammy";
+import { InlineKeyboard, Keyboard } from "grammy";
 import { MyContext, MyConversation } from "../types";
 import { t } from "../locales";
 import {
@@ -17,8 +17,9 @@ export async function addAdminConversation(
   ctx: MyContext
 ): Promise<void> {
   const lang = ctx.session.lang;
+  const cancelKb = new Keyboard().text(t(lang, "btn_menu_cancel")).resized();
 
-  await ctx.reply(t(lang, "add_admin_prompt_login"));
+  await ctx.reply(t(lang, "add_admin_prompt_login"), { reply_markup: cancelKb });
   const loginCtx = await conversation.waitFor("message:text");
   const login = loginCtx.message.text.trim();
 
@@ -28,7 +29,7 @@ export async function addAdminConversation(
     return;
   }
 
-  await ctx.reply(t(lang, "add_admin_prompt_password"));
+  await ctx.reply(t(lang, "add_admin_prompt_password"), { reply_markup: cancelKb });
   const passwordCtx = await conversation.waitFor("message:text");
   const password = passwordCtx.message.text.trim();
 
@@ -44,6 +45,7 @@ export async function updateAdminConversation(
   ctx: MyContext
 ): Promise<void> {
   const lang = ctx.session.lang;
+  const cancelKb = new Keyboard().text(t(lang, "btn_menu_cancel")).resized();
 
   const admins = await conversation.external(() => getAllAdminCredentials());
 
@@ -67,11 +69,11 @@ export async function updateAdminConversation(
   const admin = admins.find((a) => a.id === adminId);
   if (!admin) return;
 
-  await ctx.reply(t(lang, "update_admin_prompt_login", { login: admin.login }));
+  await ctx.reply(t(lang, "update_admin_prompt_login", { login: admin.login }), { reply_markup: cancelKb });
   const loginCtx = await conversation.waitFor("message:text");
   const newLogin = loginCtx.message.text.trim();
 
-  await ctx.reply(t(lang, "update_admin_prompt_password"));
+  await ctx.reply(t(lang, "update_admin_prompt_password"), { reply_markup: cancelKb });
   const passwordCtx = await conversation.waitFor("message:text");
   const newPassword = passwordCtx.message.text.trim();
 

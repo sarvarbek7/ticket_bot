@@ -1,3 +1,4 @@
+import { Keyboard } from "grammy";
 import { MyContext, MyConversation } from "../types";
 import { t } from "../locales";
 import { findCredentialByLogin, verifyPassword, getBranchByCredentialId } from "../db";
@@ -15,11 +16,13 @@ export async function loginConversation(
     return;
   }
 
-  await ctx.reply(t(lang, "login_prompt_login"));
+  const cancelKb = new Keyboard().text(t(lang, "btn_menu_cancel")).resized();
+
+  await ctx.reply(t(lang, "login_prompt_login"), { reply_markup: cancelKb });
   const loginCtx = await conversation.waitFor("message:text");
   const login = loginCtx.message.text.trim();
 
-  await ctx.reply(t(lang, "login_prompt_password"));
+  await ctx.reply(t(lang, "login_prompt_password"), { reply_markup: cancelKb });
   const passwordCtx = await conversation.waitFor("message:text");
   const password = passwordCtx.message.text.trim();
 

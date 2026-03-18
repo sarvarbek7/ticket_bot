@@ -1,4 +1,4 @@
-import { InlineKeyboard } from "grammy";
+import { InlineKeyboard, Keyboard } from "grammy";
 import { MyContext, MyConversation, ClientStatus, Lang } from "../types";
 import { t } from "../locales";
 import {
@@ -32,15 +32,17 @@ export async function addClientConversation(
     return;
   }
 
-  await ctx.reply(t(lang, "add_client_phone"));
+  const cancelKb = new Keyboard().text(t(lang, "btn_menu_cancel")).resized();
+
+  await ctx.reply(t(lang, "add_client_phone"), { reply_markup: cancelKb });
   const phoneCtx = await conversation.waitFor("message:text");
   const phone = phoneCtx.message.text.trim();
 
-  await ctx.reply(t(lang, "add_client_direction"));
+  await ctx.reply(t(lang, "add_client_direction"), { reply_markup: cancelKb });
   const dirCtx = await conversation.waitFor("message:text");
   const direction = dirCtx.message.text.trim().toUpperCase();
 
-  await ctx.reply(t(lang, "add_client_name"));
+  await ctx.reply(t(lang, "add_client_name"), { reply_markup: cancelKb });
   const nameCtx = await conversation.waitFor("message:text");
   const name = nameCtx.message.text.trim();
 

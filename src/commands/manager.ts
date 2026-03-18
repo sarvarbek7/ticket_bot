@@ -1,4 +1,4 @@
-import { InlineKeyboard } from "grammy";
+import { InlineKeyboard, Keyboard } from "grammy";
 import { MyContext, MyConversation } from "../types";
 import { t } from "../locales";
 import {
@@ -17,6 +17,7 @@ export async function addManagerConversation(
   ctx: MyContext
 ): Promise<void> {
   const lang = ctx.session.lang;
+  const cancelKb = new Keyboard().text(t(lang, "btn_menu_cancel")).resized();
   const branches = getAllBranches();
 
   if (branches.length === 0) {
@@ -24,7 +25,7 @@ export async function addManagerConversation(
     return;
   }
 
-  await ctx.reply(t(lang, "add_manager_prompt_name"));
+  await ctx.reply(t(lang, "add_manager_prompt_name"), { reply_markup: cancelKb });
   const nameCtx = await conversation.waitFor("message:text");
   const name = nameCtx.message.text.trim();
 
@@ -74,7 +75,9 @@ export async function updateManagerConversation(
   const manager = getManagerById(managerId);
   if (!manager) return;
 
-  await ctx.reply(t(lang, "update_manager_prompt_name", { name: manager.name }));
+  const cancelKb = new Keyboard().text(t(lang, "btn_menu_cancel")).resized();
+
+  await ctx.reply(t(lang, "update_manager_prompt_name", { name: manager.name }), { reply_markup: cancelKb });
   const nameCtx = await conversation.waitFor("message:text");
   const newName = nameCtx.message.text.trim();
 
