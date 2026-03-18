@@ -127,6 +127,20 @@ export async function updateBranchConversation(
     updateCredentialLoginPassword(branch.credential_id, newLogin, newPassword);
   }
 
+  // Toggle active status
+  const currentStatus = branch.is_active !== 0 ? t(lang, "branch_active") : t(lang, "branch_inactive");
+  const toggleKb = new InlineKeyboard()
+    .text(t(lang, "toggle_active_activate"), "togglebranch:activate")
+    .text(t(lang, "toggle_active_deactivate"), "togglebranch:deactivate").row()
+    .text(t(lang, "toggle_active_skip"), "togglebranch:skip");
+  await ctx.reply(t(lang, "toggle_active_prompt", { status: currentStatus }), { reply_markup: toggleKb });
+
+  const toggleCtx = await conversation.waitFor("callback_query:data");
+  await toggleCtx.answerCallbackQuery();
+  const toggleAction = toggleCtx.callbackQuery.data.split(":")[1];
+  if (toggleAction === "activate") setCredentialActive(branch.credential_id, true);
+  else if (toggleAction === "deactivate") setCredentialActive(branch.credential_id, false);
+
   await ctx.reply(t(lang, "update_branch_success", { name: newName }), {
     reply_markup: buildAdminSubKeyboard("branch", lang),
   });

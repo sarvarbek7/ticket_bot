@@ -8,6 +8,7 @@ import {
   createManager,
   getManagerById,
   updateManager,
+  setManagerActive,
   deactivateManager,
 } from "../db";
 
@@ -97,6 +98,20 @@ export async function updateManagerConversation(
   const newBranchId = parseInt(brSelCtx.callbackQuery.data.split(":")[1], 10);
 
   updateManager(managerId, newName, newBranchId);
+
+  // Toggle active status
+  const currentStatus = manager.is_active ? t(lang, "manager_active") : t(lang, "manager_inactive");
+  const toggleKb = new InlineKeyboard()
+    .text(t(lang, "toggle_active_activate"), "togglemgr:activate")
+    .text(t(lang, "toggle_active_deactivate"), "togglemgr:deactivate").row()
+    .text(t(lang, "toggle_active_skip"), "togglemgr:skip");
+  await ctx.reply(t(lang, "toggle_active_prompt", { status: currentStatus }), { reply_markup: toggleKb });
+
+  const toggleCtx = await conversation.waitFor("callback_query:data");
+  await toggleCtx.answerCallbackQuery();
+  const toggleAction = toggleCtx.callbackQuery.data.split(":")[1];
+  if (toggleAction === "activate") setManagerActive(managerId, true);
+  else if (toggleAction === "deactivate") setManagerActive(managerId, false);
 
   await ctx.reply(t(lang, "update_manager_success", { name: newName }), {
     reply_markup: buildAdminSubKeyboard("manager", lang),
