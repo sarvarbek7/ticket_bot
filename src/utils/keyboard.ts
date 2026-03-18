@@ -17,8 +17,7 @@ export function buildMenuKeyboard(type: CredentialType, lang: Lang): Keyboard {
       .text(b("btn_menu_admin_management")).text(b("btn_menu_branch_management")).row()
       .text(b("btn_menu_manager_management")).text(b("btn_menu_list_clients")).row()
       .text(b("btn_menu_statistics")).text(b("btn_menu_import")).row()
-      .text(b("btn_menu_cancel")).text(b("btn_menu_logout")).row()
-      .text(b("btn_menu_change_language"))
+      .text(b("btn_menu_cancel")).text(b("btn_menu_logout"))
       .resized()
       .persistent();
   }
@@ -26,9 +25,8 @@ export function buildMenuKeyboard(type: CredentialType, lang: Lang): Keyboard {
   // branch
   return new Keyboard()
     .text(b("btn_menu_add_client")).text(b("btn_menu_list_clients")).row()
-    .text(b("btn_menu_get_client_info")).text(b("btn_menu_change_client_status")).row()
-    .text(b("btn_menu_cancel")).text(b("btn_menu_logout")).row()
-    .text(b("btn_menu_change_language"))
+    .text(b("btn_menu_change_client_status")).row()
+    .text(b("btn_menu_cancel")).text(b("btn_menu_logout"))
     .resized()
     .persistent();
 }
@@ -37,8 +35,7 @@ export function buildGuestKeyboard(lang: Lang): Keyboard {
   const b = (key: BtnKey) => t(lang, key);
 
   return new Keyboard()
-    .text(b("btn_menu_start")).text(b("btn_menu_login")).row()
-    .text(b("btn_menu_change_language"))
+    .text(b("btn_menu_start")).text(b("btn_menu_login"))
     .resized()
     .persistent();
 }

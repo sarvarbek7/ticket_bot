@@ -71,6 +71,7 @@ export const uz = {
   add_client_select_manager: "Menejerni tanlang:",
   add_client_select_status: "Mijoz holatini tanlang:",
   add_client_no_managers: "Bu filialda faol menejerlar yo'q. Avval menejer qo'shing.",
+  add_client_alert_success: "✅ Mijoz muvaffaqiyatli qo'shildi!",
   add_client_success:
     "N: #{id}\n" +
     "Ism: {name}\nTelefon: {phone}\nYo'nalish: {direction}\nMenejer: {manager}\nHolat: {status}",
@@ -79,6 +80,10 @@ export const uz = {
   list_clients_header: "Mijozlar:\n",
   list_clients_select_branch: "Filialni tanlang:",
   list_clients_btn_all: "🌐 Barcha filiallar",
+  list_clients_select_manager: "Menejerni tanlang:",
+  list_clients_btn_all_managers: "👥 Barcha menejerlar",
+  list_clients_select_status: "Holatni tanlang:",
+  list_clients_btn_all_statuses: "🌐 Barcha holatlar",
   client_row: "#{id} | {name} | {phone} | {direction} | {status} | {manager}",
 
   get_client_info_prompt: "Mijoz ID sini kiriting:",

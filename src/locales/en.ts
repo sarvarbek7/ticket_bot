@@ -71,6 +71,7 @@ export const en = {
   add_client_select_manager: "Select a manager:",
   add_client_select_status: "Select client status:",
   add_client_no_managers: "No active managers in this branch. Please add a manager first.",
+  add_client_alert_success: "✅ Client added successfully!",
   add_client_success:
     "Id: #{id}\n" +
     "Name: {name}\nPhone: {phone}\nDirection: {direction}\nManager: {manager}\nStatus: {status}",
@@ -79,6 +80,10 @@ export const en = {
   list_clients_header: "Clients:\n",
   list_clients_select_branch: "Select a branch:",
   list_clients_btn_all: "🌐 All branches",
+  list_clients_select_manager: "Select a manager:",
+  list_clients_btn_all_managers: "👥 All managers",
+  list_clients_select_status: "Select a status:",
+  list_clients_btn_all_statuses: "🌐 All statuses",
   client_row: "#{id} | {name} | {phone} | {direction} | {status} | {manager}",
 
   get_client_info_prompt: "Enter client ID:",

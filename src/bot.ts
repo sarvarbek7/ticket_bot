@@ -2,12 +2,11 @@ import "dotenv/config";
 import { Bot, session } from "grammy";
 import { conversations, createConversation } from "@grammyjs/conversations";
 
-import { MyContext, SessionData, ClientStatus } from "./types";
+import { MyContext, SessionData } from "./types";
 import { t } from "./locales";
-import { getClientById, updateClientStatus } from "./db";
 import { authStore } from "./authStore";
 
-import { handleStart, handleLangCallback } from "./commands/start";
+import { handleStart } from "./commands/start";
 import { buildMenuKeyboard, buildAdminSubKeyboard, buildGuestKeyboard, allVariants } from "./utils/keyboard";
 import { loginConversation } from "./commands/login";
 import { handleLogout } from "./commands/logout";
@@ -32,7 +31,6 @@ import {
 import {
   addClientConversation,
   listClientsConversation,
-  getClientInfoConversation,
   changeClientStatusConversation,
 } from "./commands/ticket";
 import { statisticsConversation } from "./commands/statistics";
@@ -47,7 +45,7 @@ const bot = new Bot<MyContext>(token);
 
 bot.use(
   session<SessionData, MyContext>({
-    initial: (): SessionData => ({ lang: "en" }),
+    initial: (): SessionData => ({ lang: "uz" }),
   })
 );
 
@@ -100,16 +98,15 @@ bot.use(createConversation(updateManagerConversation));
 bot.use(createConversation(deleteManagerConversation));
 bot.use(createConversation(addClientConversation));
 bot.use(createConversation(listClientsConversation));
-bot.use(createConversation(getClientInfoConversation));
 bot.use(createConversation(changeClientStatusConversation));
 bot.use(createConversation(statisticsConversation));
 bot.use(createConversation(importConversation));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function requireAuth(ctx: MyContext): boolean {
+async function requireAuth(ctx: MyContext): Promise<boolean> {
   if (!ctx.session.credentialId) {
-    ctx.reply(t(ctx.session.lang, "not_logged_in"), {
+    await ctx.reply(t(ctx.session.lang, "not_logged_in"), {
       reply_markup: buildGuestKeyboard(ctx.session.lang),
     });
     return false;
@@ -117,19 +114,23 @@ function requireAuth(ctx: MyContext): boolean {
   return true;
 }
 
-function requireAdmin(ctx: MyContext): boolean {
-  if (!requireAuth(ctx)) return false;
+async function requireAdmin(ctx: MyContext): Promise<boolean> {
+  if (!(await requireAuth(ctx))) return false;
   if (ctx.session.type !== "admin") {
-    ctx.reply(t(ctx.session.lang, "unauthorized"));
+    await ctx.reply(t(ctx.session.lang, "unauthorized"), {
+      reply_markup: buildGuestKeyboard(ctx.session.lang),
+    });
     return false;
   }
   return true;
 }
 
-function requireBranch(ctx: MyContext): boolean {
-  if (!requireAuth(ctx)) return false;
+async function requireBranch(ctx: MyContext): Promise<boolean> {
+  if (!(await requireAuth(ctx))) return false;
   if (ctx.session.type !== "branch") {
-    ctx.reply(t(ctx.session.lang, "unauthorized"));
+    await ctx.reply(t(ctx.session.lang, "unauthorized"), {
+      reply_markup: buildGuestKeyboard(ctx.session.lang),
+    });
     return false;
   }
   return true;
@@ -140,7 +141,6 @@ function requireBranch(ctx: MyContext): boolean {
 bot.command("start", handleStart);
 bot.command("login", (ctx) => ctx.conversation.enter("loginConversation"));
 bot.command("logout", handleLogout);
-bot.command("change_language", handleStart);
 
 bot.command("cancel", (ctx) => {}); // handled by pre-conversations interceptor
 
@@ -218,11 +218,6 @@ bot.command("list_clients", async (ctx) => {
   await ctx.conversation.enter("listClientsConversation");
 });
 
-bot.command("get_client_info", async (ctx) => {
-  if (!requireAuth(ctx)) return;
-  await ctx.conversation.enter("getClientInfoConversation");
-});
-
 bot.command("change_client_status", async (ctx) => {
   if (!requireBranch(ctx)) return;
   await ctx.conversation.enter("changeClientStatusConversation");
@@ -243,7 +238,6 @@ bot.command("import", async (ctx) => {
 
 bot.hears(allVariants("btn_menu_start"), handleStart);
 bot.hears(allVariants("btn_menu_login"), (ctx) => ctx.conversation.enter("loginConversation"));
-bot.hears(allVariants("btn_menu_change_language"), handleStart);
 
 // btn_menu_cancel is handled by pre-conversations interceptor
 
@@ -357,11 +351,6 @@ bot.hears(allVariants("btn_menu_list_clients"), async (ctx) => {
   await ctx.conversation.enter("listClientsConversation");
 });
 
-bot.hears(allVariants("btn_menu_get_client_info"), async (ctx) => {
-  if (!requireAuth(ctx)) return;
-  await ctx.conversation.enter("getClientInfoConversation");
-});
-
 bot.hears(allVariants("btn_menu_change_client_status"), async (ctx) => {
   if (!requireBranch(ctx)) return;
   await ctx.conversation.enter("changeClientStatusConversation");
@@ -378,52 +367,18 @@ bot.hears(allVariants("btn_menu_import"), async (ctx) => {
   await ctx.conversation.enter("importConversation");
 });
 
+// Catch-all for unrecognized messages — restores the correct keyboard
+bot.on("message:text", async (ctx) => {
+  const lang = ctx.session.lang;
+  if (!ctx.session.credentialId) {
+    await ctx.reply(t(lang, "not_logged_in"), { reply_markup: buildGuestKeyboard(lang) });
+  } else {
+    await ctx.reply(t(lang, "welcome"), { reply_markup: buildMenuKeyboard(ctx.session.type!, lang) });
+  }
+});
+
 // ── Callback queries ──────────────────────────────────────────────────────────
 
-bot.callbackQuery(/^lang:/, handleLangCallback);
-
-// Inline status change from get_client_info keyboard
-bot.callbackQuery(/^status:/, async (ctx) => {
-  const lang = ctx.session.lang;
-
-  if (!ctx.session.credentialId) {
-    await ctx.answerCallbackQuery(t(lang, "not_logged_in"));
-    return;
-  }
-
-  const [, idStr, newStatus] = ctx.callbackQuery.data.split(":");
-  const clientId = parseInt(idStr, 10);
-
-  const client = getClientById(clientId);
-  if (!client) {
-    await ctx.answerCallbackQuery(t(lang, "client_not_found", { id: clientId }));
-    return;
-  }
-
-  if (client.buying_status !== "in_progress") {
-    await ctx.answerCallbackQuery(t(lang, "change_client_status_not_in_progress"));
-    return;
-  }
-
-  // Branch can only change their own clients
-  if (ctx.session.type === "branch" && client.branch_id !== ctx.session.branchId) {
-    await ctx.answerCallbackQuery(t(lang, "change_client_status_wrong_branch", { id: clientId }));
-    return;
-  }
-
-  updateClientStatus(clientId, newStatus as ClientStatus);
-
-  const statusIcon: Record<string, string> = { sale: "🟢", cancelled: "🔴" };
-  const icon = statusIcon[newStatus] ?? "";
-
-  const originalText = ctx.callbackQuery.message?.text ?? "";
-  const updatedText = originalText.replace("🟡 in_progress", `${icon} ${newStatus}`);
-  await ctx.editMessageText(updatedText);
-
-  await ctx.answerCallbackQuery(
-    t(lang, "change_client_status_success", { id: clientId, status: newStatus })
-  );
-});
 
 // Catch-all for unhandled callbacks
 bot.on("callback_query", (ctx) => ctx.answerCallbackQuery());

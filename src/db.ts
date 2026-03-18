@@ -261,6 +261,27 @@ export function getInProgressClientsByBranch(branchId: number): DbClient[] {
     .all(branchId) as DbClient[];
 }
 
+export function getClientsByBranchManagerStatus(
+  branchId: number,
+  managerId: number | null,
+  status: string | null
+): DbClient[] {
+  const conditions = ["c.branch_id = ?"];
+  const params: (number | string)[] = [branchId];
+  if (managerId !== null) { conditions.push("c.manager_id = ?"); params.push(managerId); }
+  if (status !== null) { conditions.push("c.buying_status = ?"); params.push(status); }
+  return db
+    .prepare(
+      `SELECT c.*, b.name as branch_name, m.name as manager_name
+       FROM clients c
+       LEFT JOIN branches b ON c.branch_id = b.id
+       LEFT JOIN managers m ON c.manager_id = m.id
+       WHERE ${conditions.join(" AND ")}
+       ORDER BY c.id DESC`
+    )
+    .all(...params) as DbClient[];
+}
+
 export function updateClientStatus(id: number, status: ClientStatus): boolean {
   const result = db
     .prepare("UPDATE clients SET buying_status = ? WHERE id = ?")

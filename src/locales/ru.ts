@@ -71,6 +71,7 @@ export const ru = {
   add_client_select_manager: "Выберите менеджера:",
   add_client_select_status: "Выберите статус клиента:",
   add_client_no_managers: "Нет активных менеджеров в этом филиале. Сначала добавьте менеджера.",
+  add_client_alert_success: "✅ Клиент успешно добавлен!",
   add_client_success:
     "N: #{id}\n" +
     "Имя: {name}\nТелефон: {phone}\nНаправление: {direction}\nМенеджер: {manager}\nСтатус: {status}",
@@ -79,6 +80,10 @@ export const ru = {
   list_clients_header: "Клиенты:\n",
   list_clients_select_branch: "Выберите филиал:",
   list_clients_btn_all: "🌐 Все филиалы",
+  list_clients_select_manager: "Выберите менеджера:",
+  list_clients_btn_all_managers: "👥 Все менеджеры",
+  list_clients_select_status: "Выберите статус:",
+  list_clients_btn_all_statuses: "🌐 Все статусы",
   client_row: "#{id} | {name} | {phone} | {direction} | {status} | {manager}",
 
   get_client_info_prompt: "Введите ID клиента:",
