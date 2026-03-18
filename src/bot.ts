@@ -8,7 +8,7 @@ import { getClientById, updateClientStatus } from "./db";
 import { authStore } from "./authStore";
 
 import { handleStart, handleLangCallback } from "./commands/start";
-import { buildMenuKeyboard, buildGuestKeyboard, allVariants } from "./utils/keyboard";
+import { buildMenuKeyboard, buildAdminSubKeyboard, buildGuestKeyboard, allVariants } from "./utils/keyboard";
 import { loginConversation } from "./commands/login";
 import { handleLogout } from "./commands/logout";
 import {
@@ -248,6 +248,40 @@ bot.hears(allVariants("btn_menu_change_language"), handleStart);
 // btn_menu_cancel is handled by pre-conversations interceptor
 
 bot.hears(allVariants("btn_menu_logout"), handleLogout);
+
+// Admin sub-menu group buttons
+bot.hears(allVariants("btn_menu_admin_management"), async (ctx) => {
+  if (!requireAdmin(ctx)) return;
+  const lang = ctx.session.lang;
+  await ctx.reply(t(lang, "btn_menu_admin_management"), {
+    reply_markup: buildAdminSubKeyboard("admin", lang),
+  });
+});
+
+bot.hears(allVariants("btn_menu_branch_management"), async (ctx) => {
+  if (!requireAdmin(ctx)) return;
+  const lang = ctx.session.lang;
+  await ctx.reply(t(lang, "btn_menu_branch_management"), {
+    reply_markup: buildAdminSubKeyboard("branch", lang),
+  });
+});
+
+bot.hears(allVariants("btn_menu_manager_management"), async (ctx) => {
+  if (!requireAdmin(ctx)) return;
+  const lang = ctx.session.lang;
+  await ctx.reply(t(lang, "btn_menu_manager_management"), {
+    reply_markup: buildAdminSubKeyboard("manager", lang),
+  });
+});
+
+// Back button — return to main admin menu
+bot.hears(allVariants("btn_menu_back"), async (ctx) => {
+  if (!requireAdmin(ctx)) return;
+  const lang = ctx.session.lang;
+  await ctx.reply(t(lang, "welcome"), {
+    reply_markup: buildMenuKeyboard("admin", lang),
+  });
+});
 
 // Admin management buttons
 bot.hears(allVariants("btn_menu_add_admin"), async (ctx) => {
