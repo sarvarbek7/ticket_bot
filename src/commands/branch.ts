@@ -39,7 +39,6 @@ export async function addBranchConversation(
       longitude = locCtx.message.location.longitude;
       break;
     }
-    if (locCtx.message?.text) return; // cancel interceptor handled it
     await ctx.reply(t(lang, "add_branch_prompt_location"), { reply_markup: cancelKb });
   }
 
@@ -110,7 +109,7 @@ export async function updateBranchConversation(
     latitude = locCtx.message.location.latitude;
     longitude = locCtx.message.location.longitude;
   }
-  if (locCtx.message?.text) return; // cancel interceptor handled it
+  // any text (e.g. "skip") keeps existing coordinates
 
   await ctx.reply(t(lang, "update_branch_prompt_login", { login: branch.login ?? "" }), { reply_markup: cancelKb });
   const loginCtx = await conversation.waitFor("message:text");
