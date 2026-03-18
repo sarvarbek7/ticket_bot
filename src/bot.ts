@@ -363,15 +363,14 @@ bot.hears(allVariants("btn_menu_statistics"), async (ctx) => {
   await ctx.conversation.enter("statisticsConversation");
 });
 
+// Import Excel — routes by role (admin → full export, branch → own branch export)
 bot.hears(allVariants("btn_menu_import"), async (ctx) => {
-  if (!(await requireAdmin(ctx))) return;
-  await ctx.conversation.enter("importConversation");
-});
-
-// Export clients (branch)
-bot.hears(allVariants("btn_menu_import_clients"), async (ctx) => {
-  if (!(await requireBranch(ctx))) return;
-  await ctx.conversation.enter("branchImportConversation");
+  if (!(await requireAuth(ctx))) return;
+  if (ctx.session.type === "admin") {
+    await ctx.conversation.enter("importConversation");
+  } else if (ctx.session.type === "branch") {
+    await ctx.conversation.enter("branchImportConversation");
+  }
 });
 
 // Catch-all for unrecognized messages — restores the correct keyboard
