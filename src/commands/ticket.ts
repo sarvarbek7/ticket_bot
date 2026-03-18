@@ -1,7 +1,6 @@
-import { InlineKeyboard, Keyboard } from "grammy";
+import { InlineKeyboard } from "grammy";
 import { MyContext, MyConversation, ClientStatus, Lang } from "../types";
 import { t } from "../locales";
-import { buildMenuKeyboard } from "../utils/keyboard";
 import {
   createClient,
   getAllClients,
@@ -10,7 +9,6 @@ import {
   updateClientStatus,
   getManagersByBranch,
   getAllBranches,
-  getInProgressClientsByBranch,
 } from "../db";
 
 function statusLabel(lang: Lang, status: string): string {
@@ -91,38 +89,35 @@ export async function addClientConversation(
 
 // ── /list_clients ─────────────────────────────────────────────────────────────
 
+const LIST_PAGE_SIZE = 10;
+
 export async function listClientsConversation(
   conversation: MyConversation,
   ctx: MyContext
 ): Promise<void> {
   const lang = ctx.session.lang;
   const type = ctx.session.type!;
+  const chatId = ctx.chat!.id;
 
-  let clients;
+  let clients: ReturnType<typeof getAllClients>;
 
   if (type === "branch") {
-    clients = getClientsByBranch(ctx.session.branchId!);
+    clients = await conversation.external(() => getClientsByBranch(ctx.session.branchId!));
   } else {
-    // admin: select branch or all
-    const branches = getAllBranches();
-
+    const branches = await conversation.external(() => getAllBranches());
     const kb = new InlineKeyboard();
-    for (const b of branches) {
-      kb.text(b.name, `listcl:${b.id}`).row();
-    }
+    for (const b of branches) kb.text(b.name, `listcl:${b.id}`).row();
     kb.text(t(lang, "list_clients_btn_all"), "listcl:all");
 
     await ctx.reply(t(lang, "list_clients_select_branch"), { reply_markup: kb });
 
     const selCtx = await conversation.waitFor("callback_query:data");
     await selCtx.answerCallbackQuery();
-    const data = selCtx.callbackQuery.data.split(":")[1];
+    const sel = selCtx.callbackQuery.data.split(":")[1];
 
-    if (data === "all") {
-      clients = getAllClients();
-    } else {
-      clients = getClientsByBranch(parseInt(data, 10));
-    }
+    clients = await conversation.external(() =>
+      sel === "all" ? getAllClients() : getClientsByBranch(parseInt(sel, 10))
+    );
   }
 
   if (clients.length === 0) {
@@ -130,21 +125,68 @@ export async function listClientsConversation(
     return;
   }
 
-  const rows = clients.map((c) =>
-    t(lang, "client_row", {
-      id: c.id,
-      name: c.name,
-      phone: c.phone,
-      direction: c.direction_name,
-      status: statusLabel(lang, c.buying_status),
-      manager: c.manager_name ?? "—",
-    })
-  );
+  const totalPages = Math.ceil(clients.length / LIST_PAGE_SIZE);
+  let page = 1;
 
-  const CHUNK = 30;
-  for (let i = 0; i < rows.length; i += CHUNK) {
-    const header = i === 0 ? t(lang, "list_clients_header") : "";
-    await ctx.reply(header + rows.slice(i, i + CHUNK).join("\n"));
+  function pageText(p: number): string {
+    const slice = clients.slice((p - 1) * LIST_PAGE_SIZE, p * LIST_PAGE_SIZE);
+    const rows = slice.map((c) =>
+      t(lang, "client_row", {
+        id: c.id,
+        name: c.name,
+        phone: c.phone,
+        direction: c.direction_name,
+        status: statusLabel(lang, c.buying_status),
+        manager: c.manager_name ?? "—",
+      })
+    );
+    const header = t(lang, "list_clients_header");
+    const pageInfo = totalPages > 1 ? `(${p}/${totalPages})\n` : "";
+    return header + pageInfo + rows.join("\n");
+  }
+
+  function pageKb(p: number): InlineKeyboard {
+    const kb = new InlineKeyboard();
+    if (totalPages > 1) {
+      for (const pg of paginationPages(p, totalPages)) {
+        if (pg === "...") {
+          kb.text("…", "lcl:noop");
+        } else {
+          kb.text(pg === p ? `<${pg}>` : String(pg), pg === p ? "lcl:noop" : `lcl:p:${pg}`);
+        }
+      }
+      kb.row();
+    }
+    kb.text(t(lang, "btn_cancel"), "lcl:cancel");
+    return kb;
+  }
+
+  const listMsg = await ctx.reply(pageText(page), { reply_markup: pageKb(page) });
+  const listMsgId = listMsg.message_id;
+
+  while (true) {
+    const cbCtx = await conversation.waitFor("callback_query:data");
+    const data = cbCtx.callbackQuery.data;
+
+    if (data === "lcl:noop") {
+      await cbCtx.answerCallbackQuery();
+      continue;
+    }
+
+    if (data === "lcl:cancel") {
+      await cbCtx.answerCallbackQuery();
+      await ctx.api.editMessageReplyMarkup(chatId, listMsgId).catch(() => {});
+      return;
+    }
+
+    if (data.startsWith("lcl:p:")) {
+      await cbCtx.answerCallbackQuery();
+      page = parseInt(data.split(":")[2]);
+      await ctx.api
+        .editMessageText(chatId, listMsgId, pageText(page), { reply_markup: pageKb(page) })
+        .catch(() => {});
+      continue;
+    }
   }
 }
 
@@ -189,80 +231,157 @@ export async function getClientInfoConversation(
 
 // ── /change_client_status ─────────────────────────────────────────────────────
 
+const CSC_PAGE_SIZE = 10;
+
+function paginationPages(current: number, total: number): (number | "...")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages = new Set<number>([1, 2, total - 1, total]);
+  if (current > 1) pages.add(current - 1);
+  pages.add(current);
+  if (current < total) pages.add(current + 1);
+  const sorted = [...pages].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b);
+  const result: (number | "...")[] = [];
+  for (let i = 0; i < sorted.length; i++) {
+    if (i > 0 && sorted[i] - sorted[i - 1] > 1) result.push("...");
+    result.push(sorted[i]);
+  }
+  return result;
+}
+
+function cscListKeyboard(
+  clients: ReturnType<typeof getClientsByBranch>,
+  page: number,
+  totalPages: number,
+  lang: Lang
+): InlineKeyboard {
+  const kb = new InlineKeyboard();
+  const slice = clients.slice((page - 1) * CSC_PAGE_SIZE, page * CSC_PAGE_SIZE);
+  for (const c of slice) {
+    kb.text(`#${c.id} | ${statusLabel(lang, c.buying_status)} | ${c.name}`, `csc:c:${c.id}`).row();
+  }
+  if (totalPages > 1) {
+    for (const p of paginationPages(page, totalPages)) {
+      if (p === "...") {
+        kb.text("…", "csc:noop");
+      } else {
+        kb.text(p === page ? `<${p}>` : String(p), p === page ? "csc:noop" : `csc:p:${p}`);
+      }
+    }
+    kb.row();
+  }
+  kb.text(t(lang, "btn_cancel"), "csc:cancel");
+  return kb;
+}
+
 export async function changeClientStatusConversation(
   conversation: MyConversation,
   ctx: MyContext
 ): Promise<void> {
   const lang = ctx.session.lang;
   const branchId = ctx.session.branchId!;
-  const menuKb = buildMenuKeyboard(ctx.session.type!, lang);
+  const chatId = ctx.chat!.id;
+
+  let clients = await conversation.external(() => getClientsByBranch(branchId));
+
+  if (clients.length === 0) {
+    await ctx.reply(t(lang, "change_client_status_no_clients"));
+    return;
+  }
+
+  let page = 1;
+  let totalPages = Math.ceil(clients.length / CSC_PAGE_SIZE);
+
+  const listMsg = await ctx.reply(t(lang, "change_client_status_select"), {
+    reply_markup: cscListKeyboard(clients, page, totalPages, lang),
+  });
+  const listMsgId = listMsg.message_id;
 
   while (true) {
-    const inProgressClients = await conversation.external(() =>
-      getInProgressClientsByBranch(branchId)
-    );
-
-    if (inProgressClients.length === 0) {
-      await ctx.reply(t(lang, "change_client_status_no_clients"), { reply_markup: menuKb });
-      return;
-    }
-
-    // Show in_progress clients as one-time reply keyboard
-    const replyKb = new Keyboard();
-    for (const c of inProgressClients) {
-      replyKb.text(`#${c.id} | ${c.name} | ${c.direction_name}`).row();
-    }
-    replyKb.oneTime().resized();
-
-    await ctx.reply(t(lang, "change_client_status_select"), { reply_markup: replyKb });
-
-    const selCtx = await conversation.waitFor("message:text");
-    const match = selCtx.message.text.match(/^#(\d+)/);
-    const id = match ? parseInt(match[1], 10) : NaN;
-
-    if (isNaN(id)) {
-      await ctx.reply(t(lang, "invalid_input"), { reply_markup: menuKb });
-      return;
-    }
-
-    const client = await conversation.external(() => getClientById(id));
-    if (!client || client.buying_status !== "in_progress") {
-      await ctx.reply(t(lang, "change_client_status_not_in_progress"), { reply_markup: menuKb });
-      return;
-    }
-
-    const inlineKb = new InlineKeyboard()
-      .text(t(lang, "btn_sale"), `changestatus:${id}:sale`)
-      .text(t(lang, "btn_cancelled"), `changestatus:${id}:cancelled`);
-
-    await ctx.reply(
-      t(lang, "change_client_status_current", { id: client.id, status: statusLabel(lang, client.buying_status) }),
-      { reply_markup: inlineKb }
-    );
-
     const cbCtx = await conversation.waitFor("callback_query:data");
-    const [, , newStatus] = cbCtx.callbackQuery.data.split(":");
+    const data = cbCtx.callbackQuery.data;
 
-    if (newStatus !== "sale" && newStatus !== "cancelled") {
-      await cbCtx.answerCallbackQuery(t(lang, "change_client_status_invalid"));
+    if (data === "csc:noop") {
+      await cbCtx.answerCallbackQuery();
+      continue;
+    }
+
+    if (data === "csc:cancel") {
+      await cbCtx.answerCallbackQuery();
+      await ctx.api.editMessageReplyMarkup(chatId, listMsgId).catch(() => {});
       return;
     }
 
-    await conversation.external(() => updateClientStatus(id, newStatus as ClientStatus));
+    if (data.startsWith("csc:p:")) {
+      await cbCtx.answerCallbackQuery();
+      page = parseInt(data.split(":")[2]);
+      await ctx.api
+        .editMessageReplyMarkup(chatId, listMsgId, {
+          reply_markup: cscListKeyboard(clients, page, totalPages, lang),
+        })
+        .catch(() => {});
+      continue;
+    }
 
-    await cbCtx.answerCallbackQuery({
-      text: t(lang, "change_client_status_success", { id, status: statusLabel(lang, newStatus) }),
-      show_alert: true,
-    });
+    if (data.startsWith("csc:c:")) {
+      await cbCtx.answerCallbackQuery();
+      const clientId = parseInt(data.split(":")[2]);
+      const client = clients.find((c) => c.id === clientId);
+      if (!client) continue;
 
-    // Edit inline message: update status text, remove keyboard
-    const statusIcon: Record<string, string> = { sale: "🟢", cancelled: "🔴" };
-    const originalText = cbCtx.callbackQuery.message?.text ?? "";
-    const updatedText = originalText
-      .replace(client.buying_status, newStatus)
-      .replace(/\n\n[\s\S]*$/, "");
-    await cbCtx.editMessageText(updatedText).catch(() => {});
+      const allStatuses: ClientStatus[] = ["in_progress", "sale", "cancelled"];
+      const statusKb = new InlineKeyboard();
+      for (const s of allStatuses) {
+        if (s !== client.buying_status) statusKb.text(statusLabel(lang, s), `csc:s:${clientId}:${s}`);
+      }
+      statusKb.row().text(t(lang, "btn_back"), "csc:back");
 
-    // Loop: show the updated client list again
+      const statusMsg = await ctx.reply(
+        t(lang, "change_client_status_current", {
+          id: client.id,
+          status: statusLabel(lang, client.buying_status),
+        }),
+        { reply_markup: statusKb }
+      );
+      const statusMsgId = statusMsg.message_id;
+
+      const statusCb = await conversation.waitFor("callback_query:data");
+      const statusData = statusCb.callbackQuery.data;
+
+      if (statusData === "csc:back") {
+        await statusCb.answerCallbackQuery();
+        await ctx.api.deleteMessage(chatId, statusMsgId).catch(() => {});
+        continue;
+      }
+
+      if (statusData.startsWith("csc:s:")) {
+        const newStatus = statusData.split(":")[3] as ClientStatus;
+        await conversation.external(() => updateClientStatus(clientId, newStatus));
+
+        await statusCb.answerCallbackQuery({
+          text: t(lang, "change_client_status_success", {
+            id: clientId,
+            status: statusLabel(lang, newStatus),
+          }),
+          show_alert: true,
+        });
+
+        await ctx.api.deleteMessage(chatId, statusMsgId).catch(() => {});
+
+        // Re-fetch to reflect the update in the list
+        clients = await conversation.external(() => getClientsByBranch(branchId));
+        totalPages = Math.ceil(clients.length / CSC_PAGE_SIZE);
+        if (page > totalPages) page = totalPages;
+
+        await ctx.api
+          .editMessageReplyMarkup(chatId, listMsgId, {
+            reply_markup: cscListKeyboard(clients, page, totalPages, lang),
+          })
+          .catch(() => {});
+        continue;
+      }
+
+      await statusCb.answerCallbackQuery();
+      await ctx.api.deleteMessage(chatId, statusMsgId).catch(() => {});
+    }
   }
 }

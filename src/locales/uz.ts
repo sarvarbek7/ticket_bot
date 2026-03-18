@@ -93,7 +93,7 @@ export const uz = {
     "Menejer: {manager}",
 
   change_client_status_select: "Holat o'zgartirish uchun mijozni tanlang:",
-  change_client_status_no_clients: "'in_progress' holatidagi mijozlar yo'q.",
+  change_client_status_no_clients: "Bu filialda mijozlar topilmadi.",
   change_client_status_current:
     "Mijoz #{id} — joriy holat: {status}\n\nYangi holatni tanlang:",
   change_client_status_invalid: "Noto'g'ri holat. Ruxsat etilgan qiymatlar: sale, cancelled.",
@@ -154,6 +154,9 @@ export const uz = {
   status_in_progress: "🟡 Jarayonda",
   status_sale: "🟢 Sotildi",
   status_cancelled: "🔴 Bekor qilindi",
+
+  btn_cancel: "❌ Bekor",
+  btn_back: "⬅️ Orqaga",
 
   // Status buttons
   btn_in_progress: "🟡 Jarayonda",

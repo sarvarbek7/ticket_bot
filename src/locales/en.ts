@@ -93,7 +93,7 @@ export const en = {
     "Manager: {manager}",
 
   change_client_status_select: "Select a client to change status:",
-  change_client_status_no_clients: "No clients with 'in_progress' status.",
+  change_client_status_no_clients: "No clients found in this branch.",
   change_client_status_current:
     "Client #{id} — current status: {status}\n\nSelect new status:",
   change_client_status_invalid: "Invalid status. Allowed values: sale, cancelled.",
@@ -154,6 +154,9 @@ export const en = {
   status_in_progress: "🟡 In Progress",
   status_sale: "🟢 Sold",
   status_cancelled: "🔴 Cancelled",
+
+  btn_cancel: "❌ Cancel",
+  btn_back: "⬅️ Back",
 
   // Status buttons
   btn_in_progress: "🟡 In Progress",

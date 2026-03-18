@@ -93,7 +93,7 @@ export const ru = {
     "Менеджер: {manager}",
 
   change_client_status_select: "Выберите клиента для изменения статуса:",
-  change_client_status_no_clients: "Нет клиентов со статусом 'in_progress'.",
+  change_client_status_no_clients: "В этом филиале нет клиентов.",
   change_client_status_current:
     "Клиент #{id} — текущий статус: {status}\n\nВыберите новый статус:",
   change_client_status_invalid: "Некорректный статус. Допустимые значения: sale, cancelled.",
@@ -154,6 +154,9 @@ export const ru = {
   status_in_progress: "🟡 В процессе",
   status_sale: "🟢 Продано",
   status_cancelled: "🔴 Отменено",
+
+  btn_cancel: "❌ Отмена",
+  btn_back: "⬅️ Назад",
 
   // Status buttons
   btn_in_progress: "🟡 В процессе",
