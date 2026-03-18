@@ -77,7 +77,7 @@ export async function addClientConversation(
 
   await ctx.api.deleteMessage(ctx.chat!.id, statusMsg.message_id).catch(() => {});
 
-  await ctx.reply(t(lang, "welcome"), {
+  await ctx.reply(t(lang, "add_client_alert_success"), {
     reply_markup: buildMenuKeyboard(ctx.session.type!, lang),
   });
 }
