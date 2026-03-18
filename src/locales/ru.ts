@@ -73,7 +73,7 @@ export const ru = {
   add_client_select_status: "Выберите статус клиента:",
   add_client_no_managers: "Нет активных менеджеров в этом филиале. Сначала добавьте менеджера.",
   add_client_success:
-    "Клиент #{id} добавлен!\n" +
+    "N: #{id}\n" +
     "Имя: {name}\nТелефон: {phone}\nНаправление: {direction}\nМенеджер: {manager}\nСтатус: {status}",
 
   list_clients_empty: "Клиенты не найдены.",

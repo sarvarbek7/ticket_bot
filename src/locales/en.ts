@@ -73,7 +73,7 @@ export const en = {
   add_client_select_status: "Select client status:",
   add_client_no_managers: "No active managers in this branch. Please add a manager first.",
   add_client_success:
-    "Client #{id} added!\n" +
+    "Id: #{id}\n" +
     "Name: {name}\nPhone: {phone}\nDirection: {direction}\nManager: {manager}\nStatus: {status}",
 
   list_clients_empty: "No clients found.",

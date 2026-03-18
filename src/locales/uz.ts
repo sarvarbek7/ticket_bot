@@ -73,7 +73,7 @@ export const uz = {
   add_client_select_status: "Mijoz holatini tanlang:",
   add_client_no_managers: "Bu filialda faol menejerlar yo'q. Avval menejer qo'shing.",
   add_client_success:
-    "#{id}-mijoz qo'shildi!\n" +
+    "N: #{id}\n" +
     "Ism: {name}\nTelefon: {phone}\nYo'nalish: {direction}\nMenejer: {manager}\nHolat: {status}",
 
   list_clients_empty: "Mijozlar topilmadi.",
