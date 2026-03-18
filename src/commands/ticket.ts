@@ -3,13 +3,12 @@ import { MyContext, MyConversation, ClientStatus, Lang } from "../types";
 import { t } from "../locales";
 import {
   createClient,
-  getAllClients,
-  getClientsByBranch,
   getClientsByBranchManagerStatus,
   updateClientStatus,
   getManagersByBranch,
   getAllBranches,
 } from "../db";
+import type { DbClient } from "../types";
 
 function statusLabel(lang: Lang, status: string): string {
   const key = `status_${status}` as Parameters<typeof t>[1];
@@ -96,7 +95,7 @@ export async function listClientsConversation(
   const type = ctx.session.type!;
   const chatId = ctx.chat!.id;
 
-  let clients: ReturnType<typeof getAllClients>;
+  let clients: DbClient[];
 
   if (type === "branch") {
     const branchId = ctx.session.branchId!;
@@ -130,19 +129,49 @@ export async function listClientsConversation(
       getClientsByBranchManagerStatus(branchId, managerId, statusFilter)
     );
   } else {
+    // Step 1: choose branch
     const branches = await conversation.external(() => getAllBranches());
-    const kb = new InlineKeyboard();
-    for (const b of branches) kb.text(b.name, `listcl:${b.id}`).row();
-    kb.text(t(lang, "list_clients_btn_all"), "listcl:all");
+    const branchKb = new InlineKeyboard();
+    for (const b of branches) branchKb.text(b.name, `listcl:b:${b.id}`).row();
+    branchKb.text(t(lang, "list_clients_btn_all"), "listcl:b:all");
 
-    await ctx.reply(t(lang, "list_clients_select_branch"), { reply_markup: kb });
+    await ctx.reply(t(lang, "list_clients_select_branch"), { reply_markup: branchKb });
 
-    const selCtx = await conversation.waitFor("callback_query:data");
-    await selCtx.answerCallbackQuery();
-    const sel = selCtx.callbackQuery.data.split(":")[1];
+    const branchCb = await conversation.waitFor("callback_query:data");
+    await branchCb.answerCallbackQuery();
+    const branchSel = branchCb.callbackQuery.data.split(":")[2];
+    const branchId = branchSel === "all" ? null : parseInt(branchSel, 10);
+
+    // Step 2: choose manager (only when a specific branch is selected)
+    let managerId: number | null = null;
+    if (branchId !== null) {
+      const managers = await conversation.external(() => getManagersByBranch(branchId));
+      const managerKb = new InlineKeyboard();
+      for (const m of managers) managerKb.text(m.name, `listcl:m:${m.id}`).row();
+      managerKb.text(t(lang, "list_clients_btn_all_managers"), "listcl:m:all");
+      await ctx.reply(t(lang, "list_clients_select_manager"), { reply_markup: managerKb });
+
+      const managerCb = await conversation.waitFor("callback_query:data");
+      await managerCb.answerCallbackQuery();
+      const managerSel = managerCb.callbackQuery.data.split(":")[2];
+      managerId = managerSel === "all" ? null : parseInt(managerSel, 10);
+    }
+
+    // Step 3: choose status
+    const statusKb = new InlineKeyboard()
+      .text(t(lang, "status_in_progress"), "listcl:s:in_progress")
+      .text(t(lang, "status_sale"), "listcl:s:sale").row()
+      .text(t(lang, "status_cancelled"), "listcl:s:cancelled").row()
+      .text(t(lang, "list_clients_btn_all_statuses"), "listcl:s:all");
+    await ctx.reply(t(lang, "list_clients_select_status"), { reply_markup: statusKb });
+
+    const statusCb = await conversation.waitFor("callback_query:data");
+    await statusCb.answerCallbackQuery();
+    const statusSel = statusCb.callbackQuery.data.split(":")[2];
+    const statusFilter = statusSel === "all" ? null : statusSel;
 
     clients = await conversation.external(() =>
-      sel === "all" ? getAllClients() : getClientsByBranch(parseInt(sel, 10))
+      getClientsByBranchManagerStatus(branchId, managerId, statusFilter)
     );
   }
 
@@ -237,7 +266,7 @@ function paginationPages(current: number, total: number): (number | "...")[] {
 }
 
 function cscListKeyboard(
-  clients: ReturnType<typeof getClientsByBranch>,
+  clients: DbClient[],
   page: number,
   totalPages: number,
   lang: Lang
