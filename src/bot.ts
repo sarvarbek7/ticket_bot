@@ -66,6 +66,25 @@ bot.use(async (ctx, next) => {
   await next();
 });
 
+// Cancel interceptor — must run before conversations() so active conversations don't swallow the update
+bot.use(async (ctx, next) => {
+  const text = ctx.message?.text ?? "";
+  const cancelTexts = allVariants("btn_menu_cancel");
+  const isCancel = text === "/cancel" || cancelTexts.includes(text);
+
+  if (isCancel) {
+    (ctx.session as any).conversation = undefined;
+    const lang = ctx.session.lang;
+    const keyboard = ctx.session.credentialId
+      ? buildMenuKeyboard(ctx.session.type!, lang)
+      : buildGuestKeyboard(lang);
+    await ctx.reply(t(lang, "cancelled"), { reply_markup: keyboard });
+    return;
+  }
+
+  await next();
+});
+
 bot.use(conversations());
 
 // Register all conversations
@@ -123,10 +142,7 @@ bot.command("login", (ctx) => ctx.conversation.enter("loginConversation"));
 bot.command("logout", handleLogout);
 bot.command("change_language", handleStart);
 
-bot.command("cancel", async (ctx) => {
-  await ctx.conversation.exit();
-  await ctx.reply(t(ctx.session.lang, "cancelled"));
-});
+bot.command("cancel", (ctx) => {}); // handled by pre-conversations interceptor
 
 // Admin management (admin only)
 bot.command("add_admin", async (ctx) => {
@@ -229,10 +245,7 @@ bot.hears(allVariants("btn_menu_start"), handleStart);
 bot.hears(allVariants("btn_menu_login"), (ctx) => ctx.conversation.enter("loginConversation"));
 bot.hears(allVariants("btn_menu_change_language"), handleStart);
 
-bot.hears(allVariants("btn_menu_cancel"), async (ctx) => {
-  await ctx.conversation.exit();
-  await ctx.reply(t(ctx.session.lang, "cancelled"));
-});
+// btn_menu_cancel is handled by pre-conversations interceptor
 
 bot.hears(allVariants("btn_menu_logout"), handleLogout);
 
