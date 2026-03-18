@@ -30,7 +30,7 @@ export const ru = {
   update_branch_prompt_name: "Введите новое название филиала (текущее: {name}):",
   update_branch_prompt_location: "Отправьте новое местоположение или напишите 'skip' для сохранения текущего:",
   update_branch_prompt_login: "Введите новый логин (текущий: {login}):",
-  update_branch_prompt_password: "Введите новый пароль:",
+  update_branch_prompt_password: "Введите новый пароль (или напишите 'skip' чтобы оставить текущий):",
   update_branch_success: "Филиал '{name}' успешно обновлён.",
 
   delete_branch_select: "Выберите филиал для деактивации:",
@@ -116,7 +116,7 @@ export const ru = {
   update_admin_select: "Выберите администратора для обновления:",
   update_admin_no_admins: "Администраторы не найдены.",
   update_admin_prompt_login: "Введите новый логин (текущий: {login}):",
-  update_admin_prompt_password: "Введите новый пароль:",
+  update_admin_prompt_password: "Введите новый пароль (или напишите 'skip' чтобы оставить текущий):",
   update_admin_success: "Администратор '{login}' успешно обновлён.",
 
   delete_admin_select: "Выберите администратора для деактивации:",

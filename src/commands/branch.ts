@@ -8,6 +8,7 @@ import {
   createBranch,
   updateBranch,
   updateCredentialLoginPassword,
+  updateCredentialLogin,
   deactivateCredential,
   getBranchById,
 } from "../db";
@@ -112,7 +113,11 @@ export async function updateBranchConversation(
   const newPassword = passwordCtx.message.text.trim();
 
   updateBranch(branchId, newName, latitude, longitude);
-  updateCredentialLoginPassword(branch.credential_id, newLogin, newPassword);
+  if (newPassword.toLowerCase() === "skip") {
+    updateCredentialLogin(branch.credential_id, newLogin);
+  } else {
+    updateCredentialLoginPassword(branch.credential_id, newLogin, newPassword);
+  }
 
   await ctx.reply(t(lang, "update_branch_success", { name: newName }));
 }

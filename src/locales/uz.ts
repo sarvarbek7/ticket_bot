@@ -30,7 +30,7 @@ export const uz = {
   update_branch_prompt_name: "Yangi filial nomini kiriting (joriy: {name}):",
   update_branch_prompt_location: "Yangi joylashuvni yuboring yoki joriy joylashuvni saqlash uchun 'skip' deb yozing:",
   update_branch_prompt_login: "Yangi loginni kiriting (joriy: {login}):",
-  update_branch_prompt_password: "Yangi parolni kiriting:",
+  update_branch_prompt_password: "Yangi parolni kiriting (yoki 'skip' yozing — joriy parol saqlanadi):",
   update_branch_success: "'{name}' filiali muvaffaqiyatli yangilandi.",
 
   delete_branch_select: "Faolsizlantirish uchun filialni tanlang:",
@@ -116,7 +116,7 @@ export const uz = {
   update_admin_select: "Yangilash uchun adminni tanlang:",
   update_admin_no_admins: "Adminlar topilmadi.",
   update_admin_prompt_login: "Yangi loginni kiriting (joriy: {login}):",
-  update_admin_prompt_password: "Yangi parolni kiriting:",
+  update_admin_prompt_password: "Yangi parolni kiriting (yoki 'skip' yozing — joriy parol saqlanadi):",
   update_admin_success: "'{login}' admin muvaffaqiyatli yangilandi.",
 
   delete_admin_select: "Faolsizlantirish uchun adminni tanlang:",

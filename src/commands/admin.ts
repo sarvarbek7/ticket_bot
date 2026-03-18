@@ -6,6 +6,7 @@ import {
   createCredential,
   findCredentialByLogin,
   updateCredentialLoginPassword,
+  updateCredentialLogin,
   deactivateCredential,
 } from "../db";
 
@@ -74,7 +75,13 @@ export async function updateAdminConversation(
   const passwordCtx = await conversation.waitFor("message:text");
   const newPassword = passwordCtx.message.text.trim();
 
-  await conversation.external(() => updateCredentialLoginPassword(adminId, newLogin, newPassword));
+  await conversation.external(() => {
+    if (newPassword.toLowerCase() === "skip") {
+      updateCredentialLogin(adminId, newLogin);
+    } else {
+      updateCredentialLoginPassword(adminId, newLogin, newPassword);
+    }
+  });
 
   await ctx.reply(t(lang, "update_admin_success", { login: newLogin }));
 }

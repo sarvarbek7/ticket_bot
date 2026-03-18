@@ -30,7 +30,7 @@ export const en = {
   update_branch_prompt_name: "Enter new branch name (current: {name}):",
   update_branch_prompt_location: "Send new location or type 'skip' to keep current:",
   update_branch_prompt_login: "Enter new login (current: {login}):",
-  update_branch_prompt_password: "Enter new password:",
+  update_branch_prompt_password: "Enter new password (or type 'skip' to keep current):",
   update_branch_success: "Branch '{name}' updated successfully.",
 
   delete_branch_select: "Select a branch to deactivate:",
@@ -116,7 +116,7 @@ export const en = {
   update_admin_select: "Select an admin to update:",
   update_admin_no_admins: "No admins found.",
   update_admin_prompt_login: "Enter new login (current: {login}):",
-  update_admin_prompt_password: "Enter new password:",
+  update_admin_prompt_password: "Enter new password (or type 'skip' to keep current):",
   update_admin_success: "Admin '{login}' updated successfully.",
 
   delete_admin_select: "Select an admin to deactivate:",

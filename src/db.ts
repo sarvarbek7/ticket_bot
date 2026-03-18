@@ -81,6 +81,10 @@ export function updateCredentialLoginPassword(id: number, login: string, passwor
   db.prepare("UPDATE credentials SET login = ?, password = ? WHERE id = ?").run(login, hash, id);
 }
 
+export function updateCredentialLogin(id: number, login: string): void {
+  db.prepare("UPDATE credentials SET login = ? WHERE id = ?").run(login, id);
+}
+
 export function deactivateCredential(credentialId: number): void {
   db.prepare("UPDATE credentials SET is_active = 0 WHERE id = ?").run(credentialId);
 }
