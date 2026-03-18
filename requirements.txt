@@ -1,0 +1,100 @@
+roles: admin, branch
+db: sqlite3 (better-sqlite3, WAL mode)
+technology: typescript, nodejs, grammY v1, @grammyjs/conversations v1
+extra_requirements: bot must support 3 languages Uzbek (uz), Russian (ru), English (en)
+
+dependencies:
+  grammy: ^1.21.1
+  @grammyjs/conversations: ^1.2.0
+  better-sqlite3: ^9.4.3
+  bcryptjs: ^2.4.3
+  exceljs: ^4.4.0
+  dotenv: ^16.4.5
+
+devDependencies:
+  typescript: ^5.3.3
+  ts-node: ^10.9.2
+  nodemon: ^3.1.0
+  @types/node, @types/bcryptjs, @types/better-sqlite3
+
+db_schema:
+- credentials
+    - id: integer (primary key, autoincrement)
+    - login: text (unique)
+    - password: text (bcrypt hashed)
+    - type: text (admin | branch)
+    - is_active: integer (default 1)
+
+- branches
+    - id: integer (primary key, autoincrement)
+    - name: text
+    - latitude: real
+    - longitude: real
+    - credential_id: integer (foreign key → credentials.id)
+
+- managers
+    - id: integer (primary key, autoincrement)
+    - name: text
+    - branch_id: integer (foreign key → branches.id)
+    - is_active: integer (default 1)
+
+- clients
+    - id: integer (primary key, autoincrement)
+    - name: text
+    - phone: text
+    - direction_name: text
+    - buying_status: text (in_progress | sale | cancelled, default in_progress)
+    - branch_id: integer (foreign key → branches.id)
+    - manager_id: integer (foreign key → managers.id)
+    - created_at: datetime (default datetime('now'))
+
+session_management:
+  - grammY in-memory session stores lang preference only reliably
+  - authStore (plain Map<chatId, AuthData>) is source-of-truth for auth state
+  - middleware restores auth from authStore into ctx.session on every update (unconditionally)
+  - on login: write to both ctx.session and authStore
+  - on logout: clear both ctx.session and authStore
+
+commands:
+    /start - Welcome message and language selection (inline keyboard). If logged in, show role menu keyboard.
+    /login - Prompt for login then password; authenticate admin or branch; store in authStore + session.
+    /logout - Clear session and authStore; return to guest keyboard.
+    /cancel - Exit any active conversation and return to main menu.
+    /change_language - Show language selection inline keyboard (same as /start).
+
+    /add_branch - Admin only: collect name → Telegram location → login → password; create branch + branch credential.
+    /update_branch - Admin only: select branch via inline keyboard → update name / location / login / password.
+    /delete_branch - Admin only: select branch via inline keyboard → set credential is_active = 0 (soft delete).
+    /list_branches - Admin only: list all branches; mark inactive (credential is_active = 0) with 🔴.
+
+    /add_manager - Admin only: enter name → select branch via inline keyboard → save manager.
+    /update_manager - Admin only: select manager via inline keyboard → update name and/or branch.
+    /delete_manager - Admin only: select manager via inline keyboard → set is_active = 0 (soft delete).
+    /list_managers - Admin only: list all managers with branch; mark inactive with 🔴.
+
+    /add_admin - Admin only: enter login + password → create admin credential.
+    /update_admin - Admin only: select admin via inline keyboard → update login + password.
+    /delete_admin - Admin only: select admin via inline keyboard → soft delete (cannot delete own account).
+    /list_admins - Admin only: list all admins; mark inactive with 🔴.
+
+    /add_client - Branch only: enter phone → name → direction → select manager via inline keyboard → save client
+                  with buying_status = in_progress. Success message shows inline ✅ Sale / ❌ Cancelled buttons.
+    /get_client_info - Auth required: enter client ID → show info. If status is in_progress, show inline status buttons.
+    /change_client_status - Branch only: show in_progress clients of the branch as a one-time reply keyboard →
+                            user taps a client → show inline Sale/Cancelled buttons → on tap: update status,
+                            show alert popup, edit previous message to reflect new status → loop back to client list.
+    /list_clients - Auth required. Branch: list own branch clients. Admin: select branch via inline keyboard
+                    (with "All branches" option) → list clients.
+
+    /statistics - Admin only: select start date (inline calendar) → end date (inline calendar) → branch
+                  (inline keyboard with "All branches") → show totals filtered by created_at: total count,
+                  by buying_status, by manager + status. "All branches" groups by branch.
+    /import - Admin only: same flow as /statistics → export matching clients to downloadable .xlsx file.
+
+ui_rules:
+  - Show role-appropriate persistent reply keyboard after every command completes.
+  - Use inline keyboard for selecting branches, managers, admins (never free-text).
+  - /change_client_status uses a one-time reply keyboard (not inline, not free-text) for client selection.
+  - Status change confirmation shown as Telegram alert popup (show_alert: true).
+  - After status change, edit the inline-keyboard message in place (update status text, remove keyboard).
+  - All text in uz / ru / en; language stored per chat in session.

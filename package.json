@@ -1,0 +1,27 @@
+{
+  "name": "ticket_bot",
+  "version": "1.0.0",
+  "description": "Aviasales Ticket Management Telegram Bot",
+  "main": "dist/bot.js",
+  "scripts": {
+    "dev": "nodemon --exec ts-node src/bot.ts",
+    "build": "tsc",
+    "start": "npm run build && node dist/bot.js"
+  },
+  "dependencies": {
+    "@grammyjs/conversations": "^1.2.0",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^9.4.3",
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "grammy": "^1.21.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/node": "^20.11.24",
+    "nodemon": "^3.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
