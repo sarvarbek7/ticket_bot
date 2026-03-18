@@ -267,7 +267,34 @@ export async function changeClientStatusConversation(
   const branchId = ctx.session.branchId!;
   const chatId = ctx.chat!.id;
 
-  let clients = await conversation.external(() => getClientsByBranch(branchId));
+  // Step 1: choose manager
+  const managers = await conversation.external(() => getManagersByBranch(branchId));
+  const managerKb = new InlineKeyboard();
+  for (const m of managers) managerKb.text(m.name, `csc:m:${m.id}`).row();
+  managerKb.text(t(lang, "list_clients_btn_all_managers"), "csc:m:all");
+  await ctx.reply(t(lang, "list_clients_select_manager"), { reply_markup: managerKb });
+
+  const managerCb = await conversation.waitFor("callback_query:data");
+  await managerCb.answerCallbackQuery();
+  const managerSel = managerCb.callbackQuery.data.split(":")[2];
+  const managerId = managerSel === "all" ? null : parseInt(managerSel, 10);
+
+  // Step 2: choose status filter
+  const statusFilterKb = new InlineKeyboard()
+    .text(t(lang, "status_in_progress"), "csc:f:in_progress")
+    .text(t(lang, "status_sale"), "csc:f:sale").row()
+    .text(t(lang, "status_cancelled"), "csc:f:cancelled").row()
+    .text(t(lang, "list_clients_btn_all_statuses"), "csc:f:all");
+  await ctx.reply(t(lang, "list_clients_select_status"), { reply_markup: statusFilterKb });
+
+  const statusFilterCb = await conversation.waitFor("callback_query:data");
+  await statusFilterCb.answerCallbackQuery();
+  const statusFilterSel = statusFilterCb.callbackQuery.data.split(":")[2];
+  const statusFilter = statusFilterSel === "all" ? null : statusFilterSel;
+
+  let clients = await conversation.external(() =>
+    getClientsByBranchManagerStatus(branchId, managerId, statusFilter)
+  );
 
   if (clients.length === 0) {
     await ctx.reply(t(lang, "change_client_status_no_clients"));
@@ -354,7 +381,9 @@ export async function changeClientStatusConversation(
         await ctx.api.deleteMessage(chatId, statusMsgId).catch(() => {});
 
         // Re-fetch to reflect the update in the list
-        clients = await conversation.external(() => getClientsByBranch(branchId));
+        clients = await conversation.external(() =>
+          getClientsByBranchManagerStatus(branchId, managerId, statusFilter)
+        );
         totalPages = Math.ceil(clients.length / CSC_PAGE_SIZE);
         if (page > totalPages) page = totalPages;
 
