@@ -34,7 +34,7 @@ import {
   changeClientStatusConversation,
 } from "./commands/ticket";
 import { statisticsConversation } from "./commands/statistics";
-import { importConversation } from "./commands/import_excel";
+import { importConversation, branchImportConversation } from "./commands/import_excel";
 
 const token = process.env.BOT_TOKEN;
 if (!token) throw new Error("BOT_TOKEN is not set in environment variables");
@@ -101,6 +101,7 @@ bot.use(createConversation(listClientsConversation));
 bot.use(createConversation(changeClientStatusConversation));
 bot.use(createConversation(statisticsConversation));
 bot.use(createConversation(importConversation));
+bot.use(createConversation(branchImportConversation));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -365,6 +366,12 @@ bot.hears(allVariants("btn_menu_statistics"), async (ctx) => {
 bot.hears(allVariants("btn_menu_import"), async (ctx) => {
   if (!requireAdmin(ctx)) return;
   await ctx.conversation.enter("importConversation");
+});
+
+// Export clients (branch)
+bot.hears(allVariants("btn_menu_import_clients"), async (ctx) => {
+  if (!requireBranch(ctx)) return;
+  await ctx.conversation.enter("branchImportConversation");
 });
 
 // Catch-all for unrecognized messages — restores the correct keyboard

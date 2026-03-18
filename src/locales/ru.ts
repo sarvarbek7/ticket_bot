@@ -156,6 +156,9 @@ export const ru = {
   import_select_end: "Выберите конечную дату для экспорта:",
   import_select_branch: "Выберите филиал для экспорта:",
   import_btn_all: "🌐 Все филиалы",
+  import_select_manager: "Выберите менеджера для экспорта:",
+  import_btn_all_managers: "👥 Все менеджеры",
+  btn_menu_import_clients: "📥 Экспорт в Excel",
   import_empty: "Клиенты не найдены.",
   import_sending: "Генерация Excel-файла…",
 

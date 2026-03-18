@@ -358,13 +358,18 @@ export function getStatistics(
 export function getClientsForExport(
   branchId: number | null,
   startDate: string,
-  endDate: string
+  endDate: string,
+  managerId: number | null = null
 ): DbClient[] {
   const conditions: string[] = ["date(c.created_at) BETWEEN ? AND ?"];
   const params: (number | string)[] = [startDate, endDate];
   if (branchId !== null) {
     conditions.push("c.branch_id = ?");
     params.push(branchId);
+  }
+  if (managerId !== null) {
+    conditions.push("c.manager_id = ?");
+    params.push(managerId);
   }
   const where = "WHERE " + conditions.join(" AND ");
 

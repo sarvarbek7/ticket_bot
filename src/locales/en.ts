@@ -156,6 +156,9 @@ export const en = {
   import_select_end: "Select end date for export:",
   import_select_branch: "Select a branch for export:",
   import_btn_all: "🌐 All branches",
+  import_select_manager: "Select a manager for export:",
+  import_btn_all_managers: "👥 All managers",
+  btn_menu_import_clients: "📥 Export Excel",
   import_empty: "No clients found.",
   import_sending: "Generating Excel file…",
 

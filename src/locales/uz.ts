@@ -156,6 +156,9 @@ export const uz = {
   import_select_end: "Eksport uchun tugash sanasini tanlang:",
   import_select_branch: "Eksport uchun filialni tanlang:",
   import_btn_all: "🌐 Barcha filiallar",
+  import_select_manager: "Eksport uchun menejerni tanlang:",
+  import_btn_all_managers: "👥 Barcha menejerlar",
+  btn_menu_import_clients: "📥 Excelga eksport",
   import_empty: "Mijozlar topilmadi.",
   import_sending: "Excel fayli yaratilmoqda…",
 

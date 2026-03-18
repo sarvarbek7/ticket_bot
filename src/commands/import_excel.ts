@@ -3,7 +3,7 @@ import ExcelJS from "exceljs";
 import { InlineKeyboard } from "grammy";
 import { MyContext, MyConversation } from "../types";
 import { t } from "../locales";
-import { getClientsForExport, getAllBranches } from "../db";
+import { getClientsForExport, getAllBranches, getManagersByBranch } from "../db";
 import { pickDate } from "../utils/calendar";
 
 export async function importConversation(
@@ -41,6 +41,16 @@ export async function importConversation(
 
   await ctx.reply(t(lang, "import_sending"));
 
+  const branchLabel = branchId !== null ? `branch_${branchId}` : "all";
+  const filename = `clients_${branchLabel}_${startDate}_${endDate}.xlsx`;
+  await buildAndSendExcel(ctx, clients, filename);
+}
+
+async function buildAndSendExcel(
+  ctx: MyContext,
+  clients: ReturnType<typeof getClientsForExport>,
+  filename: string
+): Promise<void> {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("Clients");
 
@@ -71,8 +81,44 @@ export async function importConversation(
   }
 
   const buffer = await workbook.xlsx.writeBuffer();
-  const branchLabel = branchId !== null ? `branch_${branchId}` : "all";
-  const filename = `clients_${branchLabel}_${startDate}_${endDate}.xlsx`;
-
   await ctx.replyWithDocument(new InputFile(Buffer.from(buffer), filename));
+}
+
+export async function branchImportConversation(
+  conversation: MyConversation,
+  ctx: MyContext
+): Promise<void> {
+  const lang = ctx.session.lang;
+  const branchId = ctx.session.branchId!;
+
+  const startDate = await pickDate(conversation, ctx, t(lang, "import_select_start"), "bimport_start");
+  const endDate   = await pickDate(conversation, ctx, t(lang, "import_select_end"),   "bimport_end");
+
+  // Manager selection
+  const managers = await conversation.external(() => getManagersByBranch(branchId));
+  const mgrKb = new InlineKeyboard();
+  for (const m of managers) mgrKb.text(m.name, `bimport:${m.id}`).row();
+  mgrKb.text(t(lang, "import_btn_all_managers"), "bimport:all");
+
+  await ctx.reply(t(lang, "import_select_manager"), { reply_markup: mgrKb });
+
+  const mgrCtx = await conversation.waitFor("callback_query:data");
+  await mgrCtx.answerCallbackQuery();
+  const mgrSel = mgrCtx.callbackQuery.data.split(":")[1];
+  const managerId = mgrSel === "all" ? null : parseInt(mgrSel, 10);
+
+  const clients = await conversation.external(() =>
+    getClientsForExport(branchId, startDate, endDate, managerId)
+  );
+
+  if (clients.length === 0) {
+    await ctx.reply(t(lang, "import_empty"));
+    return;
+  }
+
+  await ctx.reply(t(lang, "import_sending"));
+
+  const mgrLabel = managerId !== null ? `mgr_${managerId}` : "all";
+  const filename = `clients_branch_${branchId}_${mgrLabel}_${startDate}_${endDate}.xlsx`;
+  await buildAndSendExcel(ctx, clients, filename);
 }

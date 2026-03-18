@@ -25,7 +25,7 @@ export function buildMenuKeyboard(type: CredentialType, lang: Lang): Keyboard {
   // branch
   return new Keyboard()
     .text(b("btn_menu_add_client")).text(b("btn_menu_list_clients")).row()
-    .text(b("btn_menu_change_client_status")).row()
+    .text(b("btn_menu_change_client_status")).text(b("btn_menu_import_clients")).row()
     .text(b("btn_menu_cancel")).text(b("btn_menu_logout"))
     .resized()
     .persistent();
