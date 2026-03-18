@@ -1,6 +1,7 @@
 import { InlineKeyboard, Keyboard } from "grammy";
 import { MyContext, MyConversation } from "../types";
 import { t } from "../locales";
+import { buildAdminSubKeyboard } from "../utils/keyboard";
 import {
   getAllBranches,
   getAllManagers,
@@ -43,7 +44,9 @@ export async function addManagerConversation(
   const branch = branches.find((b) => b.id === branchId);
   createManager(name, branchId);
 
-  await ctx.reply(t(lang, "add_manager_success", { name, branch: branch?.name ?? "" }));
+  await ctx.reply(t(lang, "add_manager_success", { name, branch: branch?.name ?? "" }), {
+    reply_markup: buildAdminSubKeyboard("manager", lang),
+  });
 }
 
 // ── /update_manager ───────────────────────────────────────────────────────────
@@ -95,7 +98,9 @@ export async function updateManagerConversation(
 
   updateManager(managerId, newName, newBranchId);
 
-  await ctx.reply(t(lang, "update_manager_success", { name: newName }));
+  await ctx.reply(t(lang, "update_manager_success", { name: newName }), {
+    reply_markup: buildAdminSubKeyboard("manager", lang),
+  });
 }
 
 // ── /delete_manager ───────────────────────────────────────────────────────────
@@ -128,7 +133,9 @@ export async function deleteManagerConversation(
 
   deactivateManager(managerId);
 
-  await ctx.reply(t(lang, "delete_manager_success", { name: manager.name }));
+  await ctx.reply(t(lang, "delete_manager_success", { name: manager.name }), {
+    reply_markup: buildAdminSubKeyboard("manager", lang),
+  });
 }
 
 // ── /list_managers ────────────────────────────────────────────────────────────

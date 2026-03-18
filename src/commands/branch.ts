@@ -1,6 +1,7 @@
 import { InlineKeyboard, Keyboard } from "grammy";
 import { MyContext, MyConversation } from "../types";
 import { t } from "../locales";
+import { buildAdminSubKeyboard } from "../utils/keyboard";
 import {
   getAllBranches,
   createCredential,
@@ -57,7 +58,9 @@ export async function addBranchConversation(
   const credId = createCredential(login, password, "branch");
   createBranch(name, latitude, longitude, credId);
 
-  await ctx.reply(t(lang, "add_branch_success", { name, login }));
+  await ctx.reply(t(lang, "add_branch_success", { name, login }), {
+    reply_markup: buildAdminSubKeyboard("branch", lang),
+  });
 }
 
 // ── /update_branch ───────────────────────────────────────────────────────────
@@ -123,7 +126,9 @@ export async function updateBranchConversation(
     updateCredentialLoginPassword(branch.credential_id, newLogin, newPassword);
   }
 
-  await ctx.reply(t(lang, "update_branch_success", { name: newName }));
+  await ctx.reply(t(lang, "update_branch_success", { name: newName }), {
+    reply_markup: buildAdminSubKeyboard("branch", lang),
+  });
 }
 
 // ── /delete_branch ───────────────────────────────────────────────────────────
@@ -156,7 +161,9 @@ export async function deleteBranchConversation(
 
   deactivateCredential(branch.credential_id);
 
-  await ctx.reply(t(lang, "delete_branch_success", { name: branch.name }));
+  await ctx.reply(t(lang, "delete_branch_success", { name: branch.name }), {
+    reply_markup: buildAdminSubKeyboard("branch", lang),
+  });
 }
 
 // ── /list_branches ────────────────────────────────────────────────────────────

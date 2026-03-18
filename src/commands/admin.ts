@@ -1,6 +1,7 @@
 import { InlineKeyboard, Keyboard } from "grammy";
 import { MyContext, MyConversation } from "../types";
 import { t } from "../locales";
+import { buildAdminSubKeyboard } from "../utils/keyboard";
 import {
   getAllAdminCredentials,
   createCredential,
@@ -35,7 +36,9 @@ export async function addAdminConversation(
 
   await conversation.external(() => createCredential(login, password, "admin"));
 
-  await ctx.reply(t(lang, "add_admin_success", { login }));
+  await ctx.reply(t(lang, "add_admin_success", { login }), {
+    reply_markup: buildAdminSubKeyboard("admin", lang),
+  });
 }
 
 // ── /update_admin ─────────────────────────────────────────────────────────────
@@ -85,7 +88,9 @@ export async function updateAdminConversation(
     }
   });
 
-  await ctx.reply(t(lang, "update_admin_success", { login: newLogin }));
+  await ctx.reply(t(lang, "update_admin_success", { login: newLogin }), {
+    reply_markup: buildAdminSubKeyboard("admin", lang),
+  });
 }
 
 // ── /delete_admin ─────────────────────────────────────────────────────────────
@@ -122,7 +127,9 @@ export async function deleteAdminConversation(
 
   await conversation.external(() => deactivateCredential(adminId));
 
-  await ctx.reply(t(lang, "delete_admin_success", { login: admin.login }));
+  await ctx.reply(t(lang, "delete_admin_success", { login: admin.login }), {
+    reply_markup: buildAdminSubKeyboard("admin", lang),
+  });
 }
 
 // ── /list_admins ──────────────────────────────────────────────────────────────
