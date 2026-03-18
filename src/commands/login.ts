@@ -18,45 +18,49 @@ export async function loginConversation(
 
   const cancelKb = new Keyboard().text(t(lang, "btn_menu_cancel")).resized();
 
-  await ctx.reply(t(lang, "login_prompt_login"), { reply_markup: cancelKb });
-  const loginCtx = await conversation.waitFor("message:text");
-  const login = loginCtx.message.text.trim();
+  while (true) {
+    await ctx.reply(t(lang, "login_prompt_login"), { reply_markup: cancelKb });
+    const loginCtx = await conversation.waitFor("message:text");
+    const login = loginCtx.message.text.trim();
 
-  await ctx.reply(t(lang, "login_prompt_password"), { reply_markup: cancelKb });
-  const passwordCtx = await conversation.waitFor("message:text");
-  const password = passwordCtx.message.text.trim();
+    await ctx.reply(t(lang, "login_prompt_password"), { reply_markup: cancelKb });
+    const passwordCtx = await conversation.waitFor("message:text");
+    const password = passwordCtx.message.text.trim();
 
-  const result = await conversation.external(() => {
-    const cred = findCredentialByLogin(login);
-    if (!cred) return { error: "invalid" as const };
-    if (!verifyPassword(password, cred.password)) return { error: "invalid" as const };
-    if (!cred.is_active) return { error: "inactive" as const };
-    const branchId =
-      cred.type === "branch" ? getBranchByCredentialId(cred.id)?.id : undefined;
-    return { credentialId: cred.id, login: cred.login, type: cred.type, branchId };
-  });
+    const result = await conversation.external(() => {
+      const cred = findCredentialByLogin(login);
+      if (!cred) return { error: "invalid" as const };
+      if (!verifyPassword(password, cred.password)) return { error: "invalid" as const };
+      if (!cred.is_active) return { error: "inactive" as const };
+      const branchId =
+        cred.type === "branch" ? getBranchByCredentialId(cred.id)?.id : undefined;
+      return { credentialId: cred.id, login: cred.login, type: cred.type, branchId };
+    });
 
-  if ("error" in result) {
-    await ctx.reply(t(lang, result.error === "inactive" ? "account_inactive" : "login_failed"));
+    if ("error" in result) {
+      await ctx.reply(t(lang, result.error === "inactive" ? "account_inactive" : "login_failed"));
+      if (result.error === "inactive") return;
+      continue;
+    }
+
+    // Persist auth in the global store — survives grammY session quirks
+    const chatId = ctx.chat!.id;
+    authStore.set(chatId, {
+      credentialId: result.credentialId,
+      login: result.login,
+      type: result.type,
+      branchId: result.branchId,
+    });
+
+    // Also set on ctx.session so current handler sees it immediately
+    ctx.session.credentialId = result.credentialId;
+    ctx.session.login = result.login;
+    ctx.session.type = result.type;
+    ctx.session.branchId = result.branchId;
+
+    await ctx.reply(t(lang, "login_success", { login: result.login, type: result.type }), {
+      reply_markup: buildMenuKeyboard(result.type, lang),
+    });
     return;
   }
-
-  // Persist auth in the global store — survives grammY session quirks
-  const chatId = ctx.chat!.id;
-  authStore.set(chatId, {
-    credentialId: result.credentialId,
-    login: result.login,
-    type: result.type,
-    branchId: result.branchId,
-  });
-
-  // Also set on ctx.session so current handler sees it immediately
-  ctx.session.credentialId = result.credentialId;
-  ctx.session.login = result.login;
-  ctx.session.type = result.type;
-  ctx.session.branchId = result.branchId;
-
-  await ctx.reply(t(lang, "login_success", { login: result.login, type: result.type }), {
-    reply_markup: buildMenuKeyboard(result.type, lang),
-  });
 }
