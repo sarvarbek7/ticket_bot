@@ -91,21 +91,35 @@ export async function branchImportConversation(
   const lang = ctx.session.lang;
   const branchId = ctx.session.branchId!;
 
-  const startDate = await pickDate(conversation, ctx, t(lang, "import_select_start"), "bimport_start");
-  const endDate   = await pickDate(conversation, ctx, t(lang, "import_select_end"),   "bimport_end");
-
-  // Manager selection
+  // Step 1: select specific manager
   const managers = await conversation.external(() => getManagersByBranch(branchId));
   const mgrKb = new InlineKeyboard();
-  for (const m of managers) mgrKb.text(m.name, `bimport:${m.id}`).row();
-  mgrKb.text(t(lang, "import_btn_all_managers"), "bimport:all");
+  for (const m of managers) mgrKb.text(m.name, `bimport:m:${m.id}`).row();
 
   await ctx.reply(t(lang, "import_select_manager"), { reply_markup: mgrKb });
 
   const mgrCtx = await conversation.waitFor("callback_query:data");
   await mgrCtx.answerCallbackQuery();
-  const mgrSel = mgrCtx.callbackQuery.data.split(":")[1];
-  const managerId = mgrSel === "all" ? null : parseInt(mgrSel, 10);
+  const managerId = parseInt(mgrCtx.callbackQuery.data.split(":")[2], 10);
+
+  // Step 2: all data or filter by date
+  const modeKb = new InlineKeyboard()
+    .text(t(lang, "import_btn_all_data"), "bimport:mode:all")
+    .text(t(lang, "import_btn_by_date"), "bimport:mode:date");
+
+  await ctx.reply(t(lang, "import_select_date_mode"), { reply_markup: modeKb });
+
+  const modeCtx = await conversation.waitFor("callback_query:data");
+  await modeCtx.answerCallbackQuery();
+  const mode = modeCtx.callbackQuery.data.split(":")[2];
+
+  let startDate: string | null = null;
+  let endDate: string | null = null;
+
+  if (mode === "date") {
+    startDate = await pickDate(conversation, ctx, t(lang, "import_select_start"), "bimport_start");
+    endDate   = await pickDate(conversation, ctx, t(lang, "import_select_end"),   "bimport_end");
+  }
 
   const clients = await conversation.external(() =>
     getClientsForExport(branchId, startDate, endDate, managerId)
@@ -118,7 +132,7 @@ export async function branchImportConversation(
 
   await ctx.reply(t(lang, "import_sending"));
 
-  const mgrLabel = managerId !== null ? `mgr_${managerId}` : "all";
-  const filename = `clients_branch_${branchId}_${mgrLabel}_${startDate}_${endDate}.xlsx`;
+  const dateLabel = startDate ? `${startDate}_${endDate}` : "all";
+  const filename = `clients_branch_${branchId}_mgr_${managerId}_${dateLabel}.xlsx`;
   await buildAndSendExcel(ctx, clients, filename);
 }

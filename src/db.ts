@@ -359,12 +359,16 @@ export function getStatistics(
 
 export function getClientsForExport(
   branchId: number | null,
-  startDate: string,
-  endDate: string,
+  startDate: string | null,
+  endDate: string | null,
   managerId: number | null = null
 ): DbClient[] {
-  const conditions: string[] = ["date(c.created_at) BETWEEN ? AND ?"];
-  const params: (number | string)[] = [startDate, endDate];
+  const conditions: string[] = [];
+  const params: (number | string)[] = [];
+  if (startDate !== null && endDate !== null) {
+    conditions.push("date(c.created_at) BETWEEN ? AND ?");
+    params.push(startDate, endDate);
+  }
   if (branchId !== null) {
     conditions.push("c.branch_id = ?");
     params.push(branchId);
@@ -373,7 +377,7 @@ export function getClientsForExport(
     conditions.push("c.manager_id = ?");
     params.push(managerId);
   }
-  const where = "WHERE " + conditions.join(" AND ");
+  const where = conditions.length > 0 ? "WHERE " + conditions.join(" AND ") : "";
 
   return db
     .prepare(
