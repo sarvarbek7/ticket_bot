@@ -93,6 +93,11 @@ export async function branchImportConversation(
 
   // Step 1: select specific manager
   const managers = await conversation.external(() => getManagersByBranch(branchId));
+  if (managers.length === 0) {
+    await ctx.reply(t(lang, "add_client_no_managers"));
+    return;
+  }
+
   const mgrKb = new InlineKeyboard();
   for (const m of managers) mgrKb.text(m.name, `bimport:m:${m.id}`).row();
 
