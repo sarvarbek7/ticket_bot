@@ -1,6 +1,7 @@
 import { InlineKeyboard, Keyboard } from "grammy";
 import { MyContext, MyConversation, ClientStatus, Lang } from "../types";
 import { t } from "../locales";
+import { buildMenuKeyboard } from "../utils/keyboard";
 import {
   createClient,
   getClientsByBranchManagerStatus,
@@ -75,6 +76,10 @@ export async function addClientConversation(
   });
 
   await ctx.api.deleteMessage(ctx.chat!.id, statusMsg.message_id).catch(() => {});
+
+  await ctx.reply(t(lang, "welcome"), {
+    reply_markup: buildMenuKeyboard(ctx.session.type!, lang),
+  });
 }
 
 // ── /list_clients ─────────────────────────────────────────────────────────────
