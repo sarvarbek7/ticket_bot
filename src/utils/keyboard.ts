@@ -14,10 +14,8 @@ export function buildMenuKeyboard(type: CredentialType, lang: Lang): Keyboard {
 
   if (type === "admin") {
     return new Keyboard()
-      .text(b("btn_menu_admin_management")).row()
-      .text(b("btn_menu_branch_management")).row()
-      .text(b("btn_menu_manager_management")).row()
-      .text(b("btn_menu_list_clients")).row()
+      .text(b("btn_menu_admin_management")).text(b("btn_menu_branch_management")).row()
+      .text(b("btn_menu_manager_management")).text(b("btn_menu_list_clients")).row()
       .text(b("btn_menu_statistics")).text(b("btn_menu_import")).row()
       .text(b("btn_menu_cancel")).text(b("btn_menu_logout")).row()
       .text(b("btn_menu_change_language"))
