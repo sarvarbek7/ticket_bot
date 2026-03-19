@@ -35,7 +35,7 @@ export function buildGuestKeyboard(lang: Lang): Keyboard {
   const b = (key: BtnKey) => t(lang, key);
 
   return new Keyboard()
-    .text(b("btn_menu_start")).text(b("btn_menu_login"))
+    .text(b("btn_menu_login"))
     .resized()
     .persistent();
 }
